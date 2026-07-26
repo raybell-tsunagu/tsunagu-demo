@@ -1704,6 +1704,12 @@
     const companyById = id => DB.companies.find(c => c.id === id);
     const userById = id => DB.users.find(u => u.id === id);
     const residentById = id => DB.residents.find(r => r.id === id);
+    const hasManagementAccess = user => Boolean(
+      user &&
+      user.role !== "family" &&
+      (user.role === "admin" || user.managementAccess === true)
+    );
+    const canManageWorkRecords = user => hasManagementAccess(user);
     const initial = name => name.replace(/\s/g,"").slice(0,2);
     const escapeHTML = value => String(value ?? "").replace(/[&<>"']/g, char => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;" }[char]));
     const icon = (name, cls = "icon") => `<svg class="${cls}" aria-hidden="true"><use href="#i-${name}"></use></svg>`;
@@ -1724,7 +1730,7 @@
       const u = me();
       if (!u) return [];
       if (u.role === "family") return ["renraku"];
-      return u.role === "admin" ? ["home","kintai","workrecords","posts","renraku","admin","export"] : ["home","kintai","workrecords","posts","renraku"];
+      return hasManagementAccess(u) ? ["home","kintai","workrecords","posts","renraku","admin","export"] : ["home","kintai","workrecords","posts","renraku"];
     };
     const INACTIVITY_TIMEOUT_MS = 300_000; // 無操作300秒（5分）で自動ロック。
     let inactivityTimer = null;
@@ -2021,7 +2027,7 @@
         { id:"posts", icon:"note", label:"申し送り" },
         { id:"renraku", icon:"book", label:"連絡帳" }
       ];
-      if (u.role === "admin") items.push({ id:"admin", icon:"admin", label:"管理" });
+      if (hasManagementAccess(u)) items.push({ id:"admin", icon:"admin", label:"管理" });
       return items;
     }
     function setRoute(view, skipHistory = false) {
@@ -2087,14 +2093,15 @@
     function renderHome() {
       const u = me();
       const unread = unreadCount();
+      const canManage = canManageWorkRecords(u);
       const cards = [
         { id:"kintai", icon:"clock", title:"出退勤", desc:"出勤・退勤をかんたん打刻", cls:"" },
-        { id:"workrecords", icon:"export", title:"勤務記録", desc:u.role === "admin" ? "職員ごとの勤務実績を確認・修正" : "自分の勤務実績を月ごとに確認", cls:"" },
+        { id:"workrecords", icon:"export", title:"勤務記録", desc:canManage ? "全職員の勤務実績を確認・編集" : "自分の勤務実績を月ごとに確認", cls:"" },
         { id:"posts", icon:"note", title:"申し送り", desc:"重要事項とヒヤリハットを共有", cls:"posts", badge:unread },
         { id:"renraku", icon:"book", title:"連絡帳", desc:"ご家族へ日々の様子をお届け", cls:"renraku" }
       ];
-      if (u.role === "admin") cards.push({ id:"admin", icon:"admin", title:"管理", desc:"職員・家族アカウントを管理", cls:"admin" });
-      if (u.role === "admin") cards.push({ id:"export", icon:"export", title:"帳票出力", desc:"月ごとの記録を印刷・保存", cls:"export" });
+      if (hasManagementAccess(u)) cards.push({ id:"admin", icon:"admin", title:"管理", desc:"職員・家族アカウントを管理", cls:"admin" });
+      if (hasManagementAccess(u)) cards.push({ id:"export", icon:"export", title:"帳票出力", desc:"月ごとの記録を印刷・保存", cls:"export" });
       return `
         <section class="welcome">
           <div class="welcome-date">${longDate()}</div>
@@ -2150,7 +2157,7 @@
           const label = !a?.start ? "未出勤" : a.end ? "退勤済み" : "勤務中";
           const times = !a?.start ? "記録なし" : `${a.start} 〜 ${a.end || "勤務中"}`;
           const overtime = overtimeMinutes(a, true);
-          const canOpenHistory = u.role === "admin" || person.id === u.id;
+          const canOpenHistory = canManageWorkRecords(u) || person.id === u.id;
           const content = `
             <span class="avatar">${escapeHTML(initial(person.name))}</span>
             <span><span class="attendance-name">${escapeHTML(person.name)}</span><span class="attendance-role">${escapeHTML(person.roleLabel)}</span></span>
@@ -2245,7 +2252,7 @@
     function openAttendanceDetail(userId) {
       const person = userById(userId);
       const current = me();
-      if (!person || !current || person.companyId !== current.companyId || person.role === "family" || (current.role !== "admin" && person.id !== current.id)) return;
+      if (!person || !current || person.companyId !== current.companyId || person.role === "family" || (!canManageWorkRecords(current) && person.id !== current.id)) return;
       state.attendanceUserId = userId;
       state.attendanceMonth = todayKey().slice(0,7);
       renderAttendanceDetail();
@@ -2263,7 +2270,7 @@
     function renderAttendanceDetail() {
       const person = userById(state.attendanceUserId);
       const current = me();
-      if (!person || !current || person.companyId !== current.companyId || person.role === "family" || (current.role !== "admin" && person.id !== current.id)) return;
+      if (!person || !current || person.companyId !== current.companyId || person.role === "family" || (!canManageWorkRecords(current) && person.id !== current.id)) return;
       const records = DB.attendance
         .filter(row => row.userId === person.id && row.date.startsWith(state.attendanceMonth))
         .sort((a,b) => b.date.localeCompare(a.date));
@@ -2317,7 +2324,7 @@
     function workRecordTarget() {
       const current = me();
       if (!current || current.role === "family") return null;
-      if (current.role !== "admin") return current;
+      if (!canManageWorkRecords(current)) return current;
       const selected = userById(state.workRecordUserId);
       if (selected && selected.companyId === current.companyId && selected.role !== "family") return selected;
       state.workRecordUserId = current.id;
@@ -2326,7 +2333,7 @@
     function setWorkRecordUser(userId) {
       const current = me();
       const target = userById(userId);
-      if (!current || current.role !== "admin" || !target || target.companyId !== current.companyId || target.role === "family") return;
+      if (!current || !canManageWorkRecords(current) || !target || target.companyId !== current.companyId || target.role === "family") return;
       state.workRecordUserId = target.id;
       state.workRecordEditingId = null;
       renderApp();
@@ -2339,7 +2346,7 @@
       renderApp();
     }
     function startWorkRecordCreate() {
-      if (me()?.role !== "admin" || !workRecordTarget()) return;
+      if (!canManageWorkRecords(me()) || !workRecordTarget()) return;
       state.workRecordEditingId = "new";
       renderApp();
     }
@@ -2347,7 +2354,7 @@
       const current = me();
       const target = workRecordTarget();
       const record = DB.attendance.find(item => item.id === recordId);
-      if (!current || current.role !== "admin" || !target || !record || record.companyId !== current.companyId || record.userId !== target.id) return;
+      if (!current || !canManageWorkRecords(current) || !target || !record || record.companyId !== current.companyId || record.userId !== target.id) return;
       state.workRecordEditingId = record.id;
       renderApp();
     }
@@ -2361,7 +2368,7 @@
       return { min:`${month}-01`, max:`${month}-${String(lastDay).padStart(2,"0")}` };
     }
     function renderWorkRecordEditor(target) {
-      if (me()?.role !== "admin" || !state.workRecordEditingId) return "";
+      if (!canManageWorkRecords(me()) || !state.workRecordEditingId) return "";
       const record = state.workRecordEditingId === "new"
         ? null
         : DB.attendance.find(item => item.id === state.workRecordEditingId && item.userId === target.id);
@@ -2393,7 +2400,7 @@
     function saveWorkRecord(recordId) {
       const current = me();
       const target = workRecordTarget();
-      if (!current || current.role !== "admin" || !target) return;
+      if (!current || !canManageWorkRecords(current) || !target) return;
       const date = document.getElementById("workRecordDate")?.value || "";
       const start = document.getElementById("workRecordStart")?.value || "";
       const end = document.getElementById("workRecordEnd")?.value || "";
@@ -2431,6 +2438,7 @@
     function renderWorkRecords() {
       const current = me();
       if (!current || current.role === "family") return "";
+      const canManage = canManageWorkRecords(current);
       if (!lastTwelveMonths().includes(state.workRecordMonth)) state.workRecordMonth = lastTwelveMonths()[0];
       const staff = DB.users.filter(person => person.companyId === current.companyId && person.role !== "family");
       const target = workRecordTarget();
@@ -2439,8 +2447,8 @@
       const totalLabel = `${Math.floor(totalMinutes / 60)}時間${totalMinutes % 60}分`;
       const overtimeTotal = records.reduce((sum, record) => sum + overtimeMinutes(record), 0);
       return `
-        ${pageHead("WORK RECORDS","勤務記録", current.role === "admin" ? "職員ごとの勤務実績を月単位で確認・修正します。" : "自分の勤務実績を月単位で確認できます。","export")}
-        <div class="info-box">${icon("info","icon icon-sm")}<span>超過時間は1日8時間を超えた勤務分です。${current.role === "admin" ? "管理権限者は勤務記録の追加・修正ができます。変更内容はデモを再読み込みすると元に戻ります。" : "勤務記録の修正が必要な場合は、施設長・管理者へお知らせください。"}</span></div>
+        ${pageHead("WORK RECORDS","勤務記録", canManage ? "全職員の勤務実績を月単位で閲覧・編集します。" : "自分の勤務実績を月単位で確認できます。","export")}
+        <div class="info-box">${icon("info","icon icon-sm")}<span>超過時間は1日8時間を超えた勤務分です。${canManage ? "管理権限があるため、全職員の勤務記録を閲覧・追加・修正できます。変更内容はデモを再読み込みすると元に戻ります。" : "勤務記録の修正が必要な場合は、施設長・管理者へお知らせください。"}</span></div>
         <section class="card work-record-filter">
           <div class="work-record-filter-grid">
             <div class="work-record-field">
@@ -2449,13 +2457,13 @@
                 ${lastTwelveMonths().map(month => `<option value="${month}" ${month === state.workRecordMonth ? "selected" : ""}>${monthLabel(month)}</option>`).join("")}
               </select>
             </div>
-            ${current.role !== "admin" ? `<div class="work-record-field">
+            ${!canManage ? `<div class="work-record-field">
               <label for="workRecordOwner">対象職員</label>
               <div class="work-record-owner" id="workRecordOwner"><span class="avatar">${escapeHTML(initial(target.name))}</span><span><strong>${escapeHTML(target.name)}</strong><small>${escapeHTML(target.roleLabel)}</small></span></div>
             </div>` : ""}
           </div>
         </section>
-        ${current.role === "admin" ? `<section class="work-staff-section" aria-labelledby="workStaffHeading">
+        ${canManage ? `<section class="work-staff-section" aria-labelledby="workStaffHeading">
           <div class="section-title"><span id="workStaffHeading">職員名から勤務記録を見る</span><small>${staff.length}名</small></div>
           <div class="work-staff-grid">
             ${staff.map(person => {
@@ -2489,7 +2497,7 @@
         <div class="work-record-toolbar">
           <button class="work-record-action" type="button" onclick="exportIndividualAttendanceCsv('${target.id}','${state.workRecordMonth}')">${icon("export","icon icon-sm")}CSV保存</button>
           <button class="work-record-action" type="button" onclick="openIndividualAttendancePrint('${target.id}','${state.workRecordMonth}')">${icon("print","icon icon-sm")}印刷／PDF</button>
-          ${current.role === "admin" ? `<button class="work-record-action add" type="button" onclick="startWorkRecordCreate()">${icon("plus","icon icon-sm")}勤務記録を追加</button>` : ""}
+          ${canManage ? `<button class="work-record-action add" type="button" onclick="startWorkRecordCreate()">${icon("plus","icon icon-sm")}勤務記録を追加</button>` : ""}
         </div>
         ${renderWorkRecordEditor(target)}
         <div class="section-title"><span>${escapeHTML(target.name)}さんの記録</span><small>${records.length}件</small></div>
@@ -2504,7 +2512,7 @@
             <div class="monthly-record-time"><span>勤務</span><strong>${durationLabel(record)}</strong></div>
             <div class="monthly-record-time overtime"><span>超過</span><strong>${overtimeMinutesLabel(record)}</strong></div>
           </div>
-          ${current.role === "admin" ? `<button class="monthly-record-edit" type="button" onclick="editWorkRecord('${record.id}')">修正する</button>` : ""}
+          ${canManage ? `<button class="monthly-record-edit" type="button" onclick="editWorkRecord('${record.id}')">修正する</button>` : ""}
         </article>`).join("")}</div>` : `<div class="empty">この月の勤務記録はありません。</div>`}`;
     }
 
@@ -2666,28 +2674,33 @@
        ========================= */
     function renderAdmin() {
       const u = me();
-      if (u.role !== "admin") return "";
+      if (!hasManagementAccess(u)) return "";
       const staff = DB.users.filter(x => x.companyId === u.companyId && x.role !== "family");
       const family = DB.users.filter(x => x.companyId === u.companyId && x.role === "family");
       const row = (person, canManage = false) => {
         const isCurrentUser = person.id === u.id;
+        const personHasManagementAccess = hasManagementAccess(person);
         const permissionAction = !canManage ? "" : isCurrentUser
           ? `<button class="permission-btn" type="button" disabled>ログイン中</button>`
           : person.role === "admin"
+            ? `<button class="permission-btn" type="button" disabled>施設長権限</button>`
+            : personHasManagementAccess
             ? `<button class="permission-btn remove" type="button" onclick="toggleAdminRole('${person.id}')" aria-label="${escapeHTML(person.name)}さんの管理権限を解除">管理権限を解除</button>`
             : `<button class="permission-btn" type="button" onclick="toggleAdminRole('${person.id}')" aria-label="${escapeHTML(person.name)}さんに管理権限を付与">管理権限を付与</button>`;
+        const badgeClass = personHasManagementAccess ? "admin" : person.role;
+        const badgeLabel = person.role === "admin" ? "管理者" : personHasManagementAccess ? "管理権限あり" : person.role === "family" ? "家族" : "職員";
         return `<div class="card account-row">
           <span class="avatar">${escapeHTML(initial(person.name))}</span>
           <span><span class="account-name">${escapeHTML(person.name)}</span><span class="account-detail">${escapeHTML(person.roleLabel)}</span></span>
           <span class="account-actions">
-            <span class="role-badge ${person.role}">${person.role === "admin" ? "管理者" : person.role === "family" ? "家族" : "職員"}</span>
+            <span class="role-badge ${badgeClass}">${badgeLabel}</span>
             ${permissionAction}
           </span>
         </div>`;
       };
       return `
         ${pageHead("ADMINISTRATION","管理","施設のアカウントを確認・管理します。","admin")}
-        <div class="info-box">${icon("info","icon icon-sm")}<span>管理権限を付与した職員は、「管理」と「帳票出力」を利用できます。変更内容はこのデモを再読み込みすると元に戻ります。</span></div>
+        <div class="info-box">${icon("info","icon icon-sm")}<span>管理権限を付与した職員は、全職員の勤務記録を閲覧・追加・修正でき、「管理」と「帳票出力」も利用できます。職種表示は変わりません。変更内容はこのデモを再読み込みすると元に戻ります。</span></div>
         <div class="section-title"><span>職員アカウント</span><small>${staff.length}名</small></div>
         <div class="account-grid">${staff.map(person => row(person, true)).join("")}</div>
         <button class="invite-btn" type="button" onclick="showToast('職員用の招待リンクを発行しました')">${icon("plus","icon icon-sm")}職員を招待する</button>
@@ -2698,23 +2711,23 @@
     function toggleAdminRole(userId) {
       const actor = me();
       const target = userById(userId);
-      if (!actor || actor.role !== "admin" || !target || target.companyId !== actor.companyId || target.role === "family") return;
+      if (!actor || !hasManagementAccess(actor) || !target || target.companyId !== actor.companyId || target.role === "family") return;
       if (target.id === actor.id) {
         showToast("ログイン中の自分の管理権限は解除できません");
         return;
       }
       if (target.role === "admin") {
-        target.role = "staff";
-        target.roleLabel = target.previousRoleLabel || "介護職員";
-        delete target.previousRoleLabel;
+        showToast("施設長・管理者の基本権限は解除できません");
+        return;
+      }
+      if (target.managementAccess === true) {
+        delete target.managementAccess;
         renderApp();
         showSuccess(`${target.name}さんの管理権限を解除しました`);
       } else {
-        target.previousRoleLabel = target.roleLabel;
-        target.role = "admin";
-        target.roleLabel = "管理者";
+        target.managementAccess = true;
         renderApp();
-        showSuccess(`${target.name}さんに管理権限を付与しました`);
+        showSuccess(`${target.name}さんに管理権限と勤務記録の閲覧・編集権限を付与しました`);
       }
     }
 
@@ -2768,7 +2781,7 @@
     }
     function renderExport() {
       const u = me();
-      if (!u || u.role !== "admin") return "";
+      if (!u || !hasManagementAccess(u)) return "";
       const residents = DB.residents.filter(r => r.companyId === u.companyId);
       if (!residents.some(r => r.id === state.exportResidentId)) state.exportResidentId = residents[0]?.id || null;
       const selectedResident = residentById(state.exportResidentId);
@@ -2902,7 +2915,7 @@
 
     function openPrintPreview() {
       const u = me();
-      if (!u || u.role !== "admin") return;
+      if (!u || !hasManagementAccess(u)) return;
       if (state.exportType === "renraku") {
         const resident = residentById(state.exportResidentId);
         if (!resident || resident.companyId !== u.companyId) return;
@@ -2951,7 +2964,7 @@
     function individualAttendanceRecords(userId, month) {
       const current = me();
       const person = userById(userId);
-      if (!current || !person || person.companyId !== current.companyId || person.role === "family" || (current.role !== "admin" && person.id !== current.id) || !/^\d{4}-\d{2}$/.test(month)) return null;
+      if (!current || !person || person.companyId !== current.companyId || person.role === "family" || (!canManageWorkRecords(current) && person.id !== current.id) || !/^\d{4}-\d{2}$/.test(month)) return null;
       return DB.attendance
         .filter(row => row.userId === person.id && monthKey(row.date) === month)
         .sort((a,b) => a.date.localeCompare(b.date));
@@ -2999,7 +3012,7 @@
 
     function attendanceCsvData() {
       const u = me();
-      if (!u || u.role !== "admin") return null;
+      if (!u || !canManageWorkRecords(u)) return null;
       const staff = DB.users.filter(person => person.companyId === u.companyId && person.role !== "family");
       const staffIds = new Set(staff.map(person => person.id));
       const rows = DB.attendance
@@ -3092,7 +3105,7 @@
     }
     async function importAttendanceCsvFile(file) {
       const u = me();
-      if (!u || u.role !== "admin" || !file) return;
+      if (!u || !canManageWorkRecords(u) || !file) return;
       if (file.size > 2 * 1024 * 1024) {
         showToast("2MB以下のCSVファイルを選択してください");
         return;
