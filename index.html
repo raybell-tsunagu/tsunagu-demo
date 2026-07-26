@@ -5,9 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#176b5d">
   <title>つなぐノート｜介護施設向け情報共有</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23176b5d'/%3E%3Cpath d='M19 18h26v21H30l-8 7v-7h-3z' fill='none' stroke='white' stroke-width='4' stroke-linejoin='round'/%3E%3Cpath d='M25 25h14M25 31h10' stroke='white' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
   <style>
     :root {
       --brand: #176b5d;
@@ -540,6 +538,25 @@
     .welcome-date { position: relative; z-index: 1; opacity: .9; font-size: 12px; font-weight: 600; }
     .welcome h1 { position: relative; z-index: 1; margin: 5px 0 2px; font-size: 22px; line-height: 1.45; }
     .welcome p { position: relative; z-index: 1; margin: 4px 0 0; opacity: .92; font-size: 13px; }
+    .home-layout { display: block; }
+    .home-widgets { display: none; }
+    .home-widget {
+      padding: 15px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: var(--shadow-sm);
+    }
+    .home-widget + .home-widget { margin-top: 10px; }
+    .home-widget-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; font-size: 12px; font-weight: 800; }
+    .home-widget-head .icon { color: var(--brand-dark); }
+    .home-widget-value { display: flex; align-items: baseline; gap: 5px; color: var(--brand-dark); }
+    .home-widget-value strong { font-size: 28px; line-height: 1; }
+    .home-widget-value span { color: var(--muted); font-size: 11px; font-weight: 700; }
+    .home-widget-list { display: grid; gap: 7px; margin-top: 10px; }
+    .home-widget-person { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 7px; border-top: 1px solid #edf1ef; font-size: 11px; }
+    .home-widget-person strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .home-widget-person span { flex: 0 0 auto; color: var(--brand-dark); font-weight: 800; }
     .feature-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
     .feature-card {
       position: relative;
@@ -795,6 +812,11 @@
     }
     .work-record-editor { padding: 14px; border: 2px solid #afd1c7; background: #fbfefd; }
     .work-record-editor h2 { margin: 0 0 10px; font-size: 15px; }
+    .template-quick-fill { margin-bottom: 12px; padding: 10px; border: 1px solid #d8e5e0; border-radius: 12px; background: #f4f8f6; }
+    .template-quick-fill > span { display: block; margin-bottom: 7px; color: var(--muted); font-size: 10.5px; font-weight: 800; }
+    .template-quick-buttons { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 7px; }
+    .template-quick-btn { min-height: 44px; padding: 5px 8px; color: var(--brand-dark); border: 1px solid #afccc3; border-radius: 10px; background: #fff; font-size: 11px; font-weight: 800; cursor: pointer; }
+    .template-quick-btn small { display: block; margin-top: 1px; color: var(--muted); font-size: 9px; font-weight: 700; }
     .record-form-grid { display: grid; gap: 10px; }
     .record-form-field label { display: block; margin-bottom: 5px; color: var(--muted); font-size: 10.5px; font-weight: 800; }
     .record-form-input {
@@ -904,6 +926,7 @@
     .post-card { position: relative; padding: 15px 14px; }
     .post-card.important { border-left: 5px solid var(--important); }
     .post-card.incident { border-top: 4px solid var(--incident); }
+    .post-card.unread { border-right: 4px solid #236d91; background: #fbfdff; box-shadow: 0 0 0 2px rgba(35,109,145,.1), var(--shadow-sm); }
     .post-labels { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
     .label {
       display: inline-flex;
@@ -919,6 +942,7 @@
     .label.resident { color: #3f5d80; background: #eaf0f7; }
     .label.important { color: var(--important); border: 1px solid #edc0bc; background: var(--important-soft); }
     .label.incident { color: var(--incident); border: 1px solid #edc19f; background: var(--incident-soft); }
+    .label.unread { color: #145776; border: 1px solid #a8ccdd; background: #e8f4fa; }
     .post-time { margin-left: auto; color: var(--subtle); font-size: 10.5px; }
     .post-body { margin: 0 1px 12px; font-size: 15px; line-height: 1.75; white-space: pre-wrap; overflow-wrap: anywhere; }
     .post-meta { padding-top: 10px; color: var(--muted); border-top: 1px solid #edf0ef; font-size: 11px; }
@@ -938,6 +962,7 @@
       cursor: pointer;
     }
     .read-btn.done { color: #fff; background: var(--brand); cursor: default; }
+    .unconfirmed-list { margin-top: 9px; padding: 8px 10px; color: #6c4a1f; border: 1px solid #ead3ad; border-radius: 10px; background: #fff8ea; font-size: 10.5px; font-weight: 700; line-height: 1.55; }
     .read-count { color: var(--muted); font-size: 10.5px; }
 
     /* Contact book */
@@ -1007,6 +1032,18 @@
     }
     .permission-btn.remove { color: var(--important); border-color: #e4bbb7; background: var(--important-soft); }
     .permission-btn:disabled { color: var(--subtle); border-color: var(--line); background: #f1f3f2; cursor: not-allowed; }
+    .work-template-section { margin-top: 18px; }
+    .work-template-card { padding: 15px; }
+    .work-template-grid { display: grid; gap: 10px; }
+    .work-template-row { display: grid; grid-template-columns: 62px minmax(0,1fr) minmax(0,1fr); gap: 8px; align-items: end; padding: 10px; border: 1px solid #dde6e2; border-radius: 12px; background: #f8faf9; }
+    .work-template-name { align-self: center; color: var(--brand-dark); font-size: 13px; font-weight: 800; }
+    .work-template-field label { display: block; margin-bottom: 4px; color: var(--muted); font-size: 9.5px; font-weight: 800; }
+    .work-template-input { width: 100%; min-height: 44px; padding: 6px 8px; color: var(--ink); border: 1px solid var(--line-strong); border-radius: 9px; background: #fff; font-size: 13px; font-variant-numeric: tabular-nums; }
+    .work-template-overnight { grid-column: 2 / -1; margin-top: -4px; color: var(--incident); font-size: 9.5px; font-weight: 800; }
+    .work-template-overnight.same-day { color: var(--muted); }
+    .work-template-save { width: 100%; min-height: 48px; margin-top: 11px; color: #fff; border: 0; border-radius: 11px; background: var(--brand); font-size: 12px; font-weight: 800; cursor: pointer; }
+    .audit-trail { display: grid; gap: 3px; margin-top: 9px; padding: 8px 10px; color: #566761; border-left: 3px solid #8db5a9; border-radius: 5px 9px 9px 5px; background: #f1f6f4; font-size: 9.5px; }
+    .audit-trail strong { color: var(--brand-dark); font-size: 10px; }
     .invite-btn {
       display: inline-flex;
       width: 100%;
@@ -1026,6 +1063,10 @@
 
     /* Record export */
     .export-intro { margin-bottom: 12px; }
+    .incident-month-summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; padding: 12px 14px; color: #7a3e13; border: 1px solid #edc19f; border-radius: 14px; background: var(--incident-soft); }
+    .incident-month-summary span { font-size: 11px; font-weight: 800; }
+    .incident-month-summary strong { font-size: 22px; }
+    .incident-month-summary small { color: #875532; font-size: 10px; font-weight: 700; white-space: nowrap; }
     .export-step {
       margin-bottom: 12px;
       padding: 15px;
@@ -1445,6 +1486,8 @@
       .work-record-filter-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
       .work-staff-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
       .record-form-grid { grid-template-columns: 1.4fr 1fr 1fr; }
+      .template-quick-buttons { grid-template-columns: repeat(4,minmax(0,1fr)); }
+      .work-template-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
       .monthly-record-times { grid-template-columns: repeat(4,1fr); }
     }
     @media (min-width: 1040px) {
@@ -1464,6 +1507,9 @@
       .bottom-nav { padding: 22px 14px; }
       .feature-grid { grid-template-columns: repeat(4,minmax(0,1fr)); }
       .feature-card { min-height: 154px; }
+      .home-layout { display: grid; grid-template-columns: minmax(0,1fr) 250px; gap: 16px; align-items: start; }
+      .home-layout .feature-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+      .home-widgets { display: block; }
       .work-staff-grid { grid-template-columns: repeat(4,minmax(0,1fr)); }
       .attendance-grid,
       .account-grid,
@@ -1594,11 +1640,11 @@
         { id: "u6", companyId: "c2", name: "中村 結衣", role: "staff", roleLabel: "介護職員", pin: "0000" },
         { id: "u7", companyId: "c2", name: "渡辺 直樹", role: "family", roleLabel: "渡辺トメ様 ご家族", residentId: "r4", pin: "0000" },
         { id: "u8", companyId: "c2", name: "小林 健", role: "staff", roleLabel: "介護職員", pin: "0000" },
-        { id: "u9", companyId: "c3", name: "松本 由美", role: "admin", roleLabel: "施設長", pin: "0427" },
-        { id: "u10", companyId: "c3", name: "井上 恵", role: "staff", roleLabel: "介護職員", pin: "0427" },
-        { id: "u11", companyId: "c3", name: "中島 正志", role: "family", roleLabel: "中島フミ様 ご家族", residentId: "r6", pin: "0427" },
-        { id: "u12", companyId: "c3", name: "石井 亮", role: "staff", roleLabel: "介護職員", pin: "0427" },
-        { id: "u13", companyId: "c3", name: "宮本利也", role: "staff", roleLabel: "介護職員", pin: "0427" }
+        { id: "u9", companyId: "c3", name: "松本 由美", role: "admin", roleLabel: "施設長", pin: "5183" },
+        { id: "u10", companyId: "c3", name: "井上 恵", role: "staff", roleLabel: "介護職員", pin: "5183" },
+        { id: "u11", companyId: "c3", name: "中島 正志", role: "family", roleLabel: "中島フミ様 ご家族", residentId: "r6", pin: "5183" },
+        { id: "u12", companyId: "c3", name: "石井 亮", role: "staff", roleLabel: "介護職員", pin: "5183" },
+        { id: "u13", companyId: "c3", name: "朝比奈 そら", role: "staff", roleLabel: "介護職員", pin: "5183" }
       ],
       residents: [
         { id: "r1", companyId: "c1", name: "鈴木 ハル", age: 88, care: "要介護2", note: "右下肢に筋力低下あり。食事は刻み食・とろみ付きで提供。" },
@@ -1613,6 +1659,7 @@
         { id: "p1", companyId: "c1", authorId: "u3", type: "normal", shift: "日勤", residentId: "r1", important: true, text: "鈴木ハル様、昼食時にむせ込みが1回ありました。夕食時は姿勢を確認し、一口量を少なめにしてください。水分はとろみ強めでお願いします。", date: "2026-07-25", time: "13:45", readBy: ["u1"] },
         { id: "p2", companyId: "c1", authorId: "u2", type: "normal", shift: "早番", residentId: "r2", important: false, text: "高橋様、朝の体操に意欲的に参加されました。表情も明るく食欲もあります。", date: "2026-07-25", time: "09:20", readBy: ["u1","u3"] },
         { id: "p3", companyId: "c1", authorId: "u1", type: "normal", shift: "日勤", residentId: null, important: false, text: "明日10時からご家族の見学があります。フロアの整理整頓をお願いします。", date: "2026-07-25", time: "11:05", readBy: ["u2"] },
+        { id: "p8", companyId: "c1", authorId: "u2", type: "incident", shift: "遅番", residentId: "r3", important: false, text: "【状況】\n居室から食堂へ移動中、伊藤キヨ様が椅子の脚につまずきかけました。職員が支えたため転倒・外傷はありません。\n\n【対応】\n歩行経路の椅子を移動し、床面と動線を再確認しました。移動時の見守りを継続します。", date: "2026-07-24", time: "16:40", readBy: ["u1"] },
         { id: "p4", companyId: "c2", authorId: "u6", type: "incident", shift: "夜勤", residentId: "r4", important: true, text: "【状況】\n深夜2時頃、離床センサーが作動。廊下を歩かれていました。\n\n【対応】\n居室へご案内し、水分補給後に再入眠されました。日中の様子を観察してください。", date: "2026-07-25", time: "06:30", readBy: [] },
         { id: "p5", companyId: "c2", authorId: "u5", type: "normal", shift: "日勤", residentId: "r5", important: false, text: "小林様のご家族から饅頭の差し入れがありました。血糖値との関係で、1日1個までとしています。", date: "2026-07-25", time: "14:10", readBy: ["u6"] },
         { id: "p6", companyId: "c3", authorId: "u10", type: "normal", shift: "日勤", residentId: "r6", important: true, text: "中島フミ様、昼食後に立ち上がる際、少しふらつきが見られました。移動時の付き添いをお願いします。", date: "2026-07-25", time: "13:20", readBy: ["u9"] },
@@ -1637,6 +1684,16 @@
         { id: "a6", companyId: "c3", userId: "u12", date: todayKey(), start: "07:50", end: null }
       ]
     };
+
+    const DEFAULT_WORK_TEMPLATES = [
+      { id:"early", name:"早出", start:"07:00", end:"16:00" },
+      { id:"day", name:"日勤", start:"09:00", end:"18:00" },
+      { id:"late", name:"遅出", start:"11:00", end:"20:00" },
+      { id:"night", name:"夜勤", start:"22:00", end:"07:00" }
+    ];
+    DB.workTemplates = DB.companies.flatMap(company =>
+      DEFAULT_WORK_TEMPLATES.map(template => ({ ...template, companyId:company.id }))
+    );
 
     /* Past 12 months of sample attendance records for the employee detail view */
     DB.users.filter(user => user.role !== "family").forEach((user, userIndex) => {
@@ -1732,7 +1789,7 @@
       if (u.role === "family") return ["renraku"];
       return hasManagementAccess(u) ? ["home","kintai","workrecords","posts","renraku","admin","export"] : ["home","kintai","workrecords","posts","renraku"];
     };
-    const INACTIVITY_TIMEOUT_MS = 300_000; // 無操作300秒（5分）で自動ロック。
+    const INACTIVITY_TIMEOUT_MS = 300_000; // 無操作300秒（5分）で自動ロック。本番運用も300秒想定。
     let inactivityTimer = null;
     /* =========================
        Login flow
@@ -1813,7 +1870,7 @@
             <div class="stepper" aria-label="ログイン手順">${stepper}</div>
             ${body}
           </div>
-          <div class="demo-hint">デモ用: himawari / sakura は PIN 0000、kanekiyo は PIN 0427</div>
+          <div class="demo-hint">デモ用: himawari / sakura は PIN 0000、kanekiyo は PIN 5183</div>
           <div class="security-note">${icon("shield","icon icon-sm")}<span>記録は暗号化され、施設ごとに分離して安全に保管されます（デモ表示）</span></div>
         </section>`;
       if (state.loginStep === "company") setTimeout(() => document.getElementById("companyCode")?.focus(), 0);
@@ -2027,11 +2084,23 @@
         { id:"posts", icon:"note", label:"申し送り" },
         { id:"renraku", icon:"book", label:"連絡帳" }
       ];
-      if (hasManagementAccess(u)) items.push({ id:"admin", icon:"admin", label:"管理" });
+      if (hasManagementAccess(u)) {
+        items.push({ id:"admin", icon:"admin", label:"管理" });
+        items.push({ id:"export", icon:"export", label:"帳票出力" });
+      }
       return items;
     }
+    function defaultView(user = me()) {
+      return user?.role === "family" ? "renraku" : "home";
+    }
+    function replaceRouteHash(view) {
+      const next = `#/${view}`;
+      if (location.hash !== next) {
+        history.replaceState(null, "", `${location.pathname}${location.search}${next}`);
+      }
+    }
     function setRoute(view, skipHistory = false) {
-      if (!allowedViews().includes(view)) view = me()?.role === "family" ? "renraku" : "home";
+      if (!allowedViews().includes(view)) view = defaultView();
       if (!skipHistory && state.view !== view && allowedViews().includes(state.view)) {
         state.viewHistory.push(state.view);
         if (state.viewHistory.length > 12) state.viewHistory.shift();
@@ -2047,12 +2116,14 @@
         const candidate = state.viewHistory.pop();
         if (candidate !== state.view && allowedViews().includes(candidate)) previous = candidate;
       }
-      setRoute(previous || (me()?.role === "family" ? "renraku" : "home"), true);
+      setRoute(previous || defaultView(), true);
     }
     function routeFromHash() {
       if (!me() || state.locked) return;
-      const route = location.hash.replace(/^#\//,"") || (me().role === "family" ? "renraku" : "home");
-      state.view = allowedViews().includes(route) ? route : (me().role === "family" ? "renraku" : "home");
+      const requestedRoute = location.hash.replace(/^#\//,"") || defaultView();
+      const route = allowedViews().includes(requestedRoute) ? requestedRoute : defaultView();
+      state.view = route;
+      replaceRouteHash(route);
       renderApp();
     }
     function renderApp() {
@@ -2063,10 +2134,12 @@
       document.getElementById("shell").classList.remove("hidden");
       document.getElementById("headerCompany").textContent = `つなぐノート｜${myCompany().name}｜${u.name}`;
       const renderers = { home:renderHome, kintai:renderKintai, workrecords:renderWorkRecords, posts:renderPosts, renraku:renderRenraku, admin:renderAdmin, export:renderExport };
-      if (!allowedViews().includes(state.view)) state.view = u.role === "family" ? "renraku" : "home";
-      const returnsToLogin = state.view === "home" || u.role === "family";
-      const backControl = returnsToLogin
-        ? `<button class="page-back-btn" type="button" onclick="logout()">${icon("back","icon icon-sm")}ログイン画面に戻る</button>`
+      if (!allowedViews().includes(state.view)) {
+        state.view = defaultView(u);
+        replaceRouteHash(state.view);
+      }
+      const backControl = state.view === "home" || u.role === "family"
+        ? ""
         : `<button class="page-back-btn" type="button" onclick="goBack()">${icon("back","icon icon-sm")}ひとつ前に戻る</button>`;
       document.getElementById("mainContent").innerHTML = backControl + renderers[state.view]();
       renderNav();
@@ -2094,6 +2167,11 @@
       const u = me();
       const unread = unreadCount();
       const canManage = canManageWorkRecords(u);
+      const staff = DB.users.filter(person => person.companyId === u.companyId && person.role !== "family");
+      const workingStaff = staff.filter(person => {
+        const attendance = attendanceFor(person.id);
+        return attendance?.start && !attendance.end;
+      });
       const cards = [
         { id:"kintai", icon:"clock", title:"出退勤", desc:"出勤・退勤をかんたん打刻", cls:"" },
         { id:"workrecords", icon:"export", title:"勤務記録", desc:canManage ? "全職員の勤務実績を確認・編集" : "自分の勤務実績を月ごとに確認", cls:"" },
@@ -2109,14 +2187,31 @@
           <p>今日も安全を第一に、よろしくお願いします。</p>
         </section>
         <div class="section-title"><span>今日のメニュー</span>${unread ? `<small>未読の申し送り ${unread}件</small>` : "<small>未読はありません</small>"}</div>
-        <div class="feature-grid">
-          ${cards.map(c => `<button class="feature-card ${c.cls}" type="button" onclick="setRoute('${c.id}')">
-            ${c.badge ? `<span class="count-badge" aria-label="未読${c.badge}件">${c.badge}</span>` : ""}
-            <span class="feature-icon">${icon(c.icon,"icon icon-lg")}</span>
-            <strong>${c.title}</strong><small>${c.desc}</small>
-          </button>`).join("")}
-        </div>
-        <div class="home-note">${icon("info","icon icon-sm")}<span>申し送りは確認後に「確認しました」を押すと、チームへ既読状況が共有されます。</span></div>`;
+        <div class="home-layout">
+          <div>
+            <div class="feature-grid">
+              ${cards.map(c => `<button class="feature-card ${c.cls}" type="button" onclick="setRoute('${c.id}')">
+                ${c.badge ? `<span class="count-badge" aria-label="未読${c.badge}件">${c.badge}</span>` : ""}
+                <span class="feature-icon">${icon(c.icon,"icon icon-lg")}</span>
+                <strong>${c.title}</strong><small>${c.desc}</small>
+              </button>`).join("")}
+            </div>
+            <div class="home-note">${icon("info","icon icon-sm")}<span>申し送りは確認後に「確認しました」を押すと、チームへ既読状況が共有されます。</span></div>
+          </div>
+          <aside class="home-widgets" aria-label="本日の概要">
+            <section class="home-widget">
+              <div class="home-widget-head"><span>${icon("clock","icon icon-sm")}本日の出勤状況</span></div>
+              <div class="home-widget-value"><strong>${workingStaff.length}</strong><span>名が勤務中</span></div>
+              <div class="home-widget-list">
+                ${workingStaff.length ? workingStaff.slice(0,4).map(person => `<div class="home-widget-person"><strong>${escapeHTML(person.name)}</strong><span>${escapeHTML(attendanceFor(person.id)?.start || "")}〜</span></div>`).join("") : `<div class="home-widget-person"><strong>勤務中の職員はいません</strong></div>`}
+              </div>
+            </section>
+            <section class="home-widget">
+              <div class="home-widget-head"><span>${icon("note","icon icon-sm")}未読の申し送り</span></div>
+              <div class="home-widget-value"><strong>${unread}</strong><span>件</span></div>
+            </section>
+          </aside>
+        </div>`;
     }
 
     /* =========================
@@ -2142,7 +2237,7 @@
           <div class="record-summary" aria-label="本日の打刻時刻">
             <div class="record-time"><span>出勤時刻</span><strong class="${mine?.start ? "" : "pending"}">${mine?.start || "未打刻"}</strong></div>
             <div class="record-time"><span>退勤時刻</span><strong class="${mine?.end ? "" : "pending"}">${mine?.end || "未打刻"}</strong></div>
-            <div class="record-time overtime"><span>超過時間</span><strong id="overtimeToday" class="${overtimeMinutes(mine,true) ? "positive" : ""}">${overtimeMinutesLabel(mine,true)}</strong></div>
+            <div class="record-time overtime"><span>時間外</span><strong id="overtimeToday" class="${overtimeMinutes(mine,true) ? "positive" : ""}">${overtimeMinutesLabel(mine,true)}</strong></div>
           </div>
           <div class="punch-actions">
             <button class="punch-btn" type="button" onclick="punch('start')" ${mine?.start ? "disabled" : ""}>出勤を打刻</button>
@@ -2161,7 +2256,7 @@
           const content = `
             <span class="avatar">${escapeHTML(initial(person.name))}</span>
             <span><span class="attendance-name">${escapeHTML(person.name)}</span><span class="attendance-role">${escapeHTML(person.roleLabel)}</span></span>
-            <span class="attendance-time"><span class="work-label ${cls}">${label}</span><br>${times}<span class="overtime-chip ${overtime ? "positive" : ""}">${overtime ? `超過 ${minutesLabel(overtime)}` : "超過なし"}</span>${canOpenHistory ? `<span class="record-link">勤務記録 ${icon("arrow","icon")}</span>` : ""}</span>`;
+            <span class="attendance-time"><span class="work-label ${cls}">${label}</span><br>${times}<span class="overtime-chip ${overtime ? "positive" : ""}">${overtime ? `時間外 ${minutesLabel(overtime)}` : "時間外なし"}</span>${canOpenHistory ? `<span class="record-link">勤務記録 ${icon("arrow","icon")}</span>` : ""}</span>`;
           return canOpenHistory
             ? `<button class="card attendance-row attendance-person-btn" type="button" onclick="openAttendanceDetail('${person.id}')" aria-label="${escapeHTML(person.name)}さんの勤務記録を開く">${content}</button>`
             : `<div class="card attendance-row">${content}</div>`;
@@ -2215,7 +2310,9 @@
       const [startHour,startMinute] = record.start.split(":").map(Number);
       const now = new Date();
       const difference = (now.getHours() * 60 + now.getMinutes()) - (startHour * 60 + startMinute);
-      return difference >= 0 ? difference : difference + (24 * 60);
+      // 当日データの開始時刻が現在より後なら、サンプルデータ上の未来時刻として0分扱いにする。
+      // 夜勤の日またぎは退勤時刻が入った勤務記録を attendanceMinutes() で計算する。
+      return Math.max(0, difference);
     }
     function overtimeMinutes(record, includeActive = false) {
       const worked = record?.end ? attendanceMinutes(record) : includeActive ? activeAttendanceMinutes(record) : 0;
@@ -2321,6 +2418,26 @@
     /* =========================
        Work records
        ========================= */
+    function workTemplatesForCompany(companyId) {
+      return DB.workTemplates.filter(template => template.companyId === companyId);
+    }
+    function isOvernightTime(start, end) {
+      return Boolean(start && end && end <= start);
+    }
+    function workTemplateTimeLabel(template) {
+      return `${template.start}〜${isOvernightTime(template.start, template.end) ? "翌" : ""}${template.end}`;
+    }
+    function applyWorkTemplate(templateId) {
+      const current = me();
+      if (!canManageWorkRecords(current) || !state.workRecordEditingId) return;
+      const template = workTemplatesForCompany(current.companyId).find(item => item.id === templateId);
+      const startInput = document.getElementById("workRecordStart");
+      const endInput = document.getElementById("workRecordEnd");
+      if (!template || !startInput || !endInput) return;
+      startInput.value = template.start;
+      endInput.value = template.end;
+      showToast(`${template.name}（${workTemplateTimeLabel(template)}）を入力しました`);
+    }
     function workRecordTarget() {
       const current = me();
       if (!current || current.role === "family") return null;
@@ -2367,6 +2484,18 @@
       const lastDay = new Date(year, value, 0).getDate();
       return { min:`${month}-01`, max:`${month}-${String(lastDay).padStart(2,"0")}` };
     }
+    function hasDuplicateWorkRecord(userId, date, excludeRecordId = null) {
+      return DB.attendance.some(item =>
+        item.userId === userId &&
+        item.date === date &&
+        (excludeRecordId === null || String(item.id) !== String(excludeRecordId))
+      );
+    }
+    function workRecordAuditLabel(entry) {
+      const actor = userById(entry.actorId);
+      const [,month,day] = String(entry.date || "").split("-");
+      return `${Number(month)}/${Number(day)} ${actor?.name || "管理者"}が${entry.action}`;
+    }
     function renderWorkRecordEditor(target) {
       if (!canManageWorkRecords(me()) || !state.workRecordEditingId) return "";
       const record = state.workRecordEditingId === "new"
@@ -2375,8 +2504,15 @@
       if (state.workRecordEditingId !== "new" && !record) return "";
       const bounds = workRecordMonthBounds(state.workRecordMonth);
       const defaultDate = state.workRecordMonth === todayKey().slice(0,7) ? todayKey() : bounds.min;
+      const templates = workTemplatesForCompany(me().companyId);
       return `<section class="card work-record-editor">
         <h2>${record ? "勤務記録を修正" : "勤務記録を追加"}</h2>
+        <div class="template-quick-fill">
+          <span>テンプレートから入力</span>
+          <div class="template-quick-buttons">
+            ${templates.map(template => `<button class="template-quick-btn" type="button" onclick="applyWorkTemplate('${template.id}')">${escapeHTML(template.name)}<small>${escapeHTML(workTemplateTimeLabel(template))}</small></button>`).join("")}
+          </div>
+        </div>
         <div class="record-form-grid">
           <div class="record-form-field">
             <label for="workRecordDate">勤務日</label>
@@ -2410,8 +2546,8 @@
         showToast("勤務日と打刻時刻を確認してください");
         return;
       }
-      const duplicate = DB.attendance.find(item => item.userId === target.id && item.date === date && item.id !== recordId);
-      if (duplicate) {
+      const editingRecordId = recordId === "new" ? null : recordId;
+      if (hasDuplicateWorkRecord(target.id, date, editingRecordId)) {
         showToast("同じ勤務日の記録がすでにあります");
         return;
       }
@@ -2422,7 +2558,8 @@
           userId:target.id,
           date,
           start,
-          end:end || null
+          end:end || null,
+          auditTrail:[{ date:todayKey(), actorId:current.id, action:"追加" }]
         });
       } else {
         const record = DB.attendance.find(item => item.id === recordId && item.companyId === current.companyId && item.userId === target.id);
@@ -2430,6 +2567,7 @@
         record.date = date;
         record.start = start;
         record.end = end || null;
+        record.auditTrail = [...(record.auditTrail || []), { date:todayKey(), actorId:current.id, action:"修正" }];
       }
       state.workRecordEditingId = null;
       renderApp();
@@ -2512,6 +2650,7 @@
             <div class="monthly-record-time"><span>勤務</span><strong>${durationLabel(record)}</strong></div>
             <div class="monthly-record-time overtime"><span>超過</span><strong>${overtimeMinutesLabel(record)}</strong></div>
           </div>
+          ${canManage && record.auditTrail?.length ? `<div class="audit-trail"><strong>修正履歴</strong>${record.auditTrail.slice(-3).reverse().map(entry => `<span>${escapeHTML(workRecordAuditLabel(entry))}</span>`).join("")}</div>` : ""}
           ${canManage ? `<button class="monthly-record-edit" type="button" onclick="editWorkRecord('${record.id}')">修正する</button>` : ""}
         </article>`).join("")}</div>` : `<div class="empty">この月の勤務記録はありません。</div>`}`;
     }
@@ -2573,8 +2712,15 @@
       const author = userById(post.authorId);
       const resident = post.residentId ? residentById(post.residentId) : null;
       const read = post.authorId === u.id || post.readBy.includes(u.id);
-      return `<article class="card post-card ${post.important ? "important" : ""} ${post.type === "incident" ? "incident" : ""}">
+      const unconfirmedStaff = DB.users.filter(person =>
+        person.companyId === post.companyId &&
+        person.role !== "family" &&
+        person.id !== post.authorId &&
+        !post.readBy.includes(person.id)
+      );
+      return `<article class="card post-card ${post.important ? "important" : ""} ${post.type === "incident" ? "incident" : ""} ${read ? "" : "unread"}">
         <div class="post-labels">
+          ${!read ? `<span class="label unread">${icon("note","icon icon-sm")}未読</span>` : ""}
           ${post.important ? `<span class="label important">${icon("flag","icon icon-sm")}重要</span>` : ""}
           ${post.type === "incident" ? `<span class="label incident">${icon("alert","icon icon-sm")}ヒヤリハット</span>` : ""}
           <span class="label shift">${escapeHTML(post.shift)}</span>
@@ -2589,6 +2735,7 @@
           </button>
           <span class="read-count">確認 ${post.readBy.length}名</span>
         </div>
+        ${hasManagementAccess(u) ? `<div class="unconfirmed-list">未確認：${unconfirmedStaff.length ? unconfirmedStaff.map(person => escapeHTML(person.name)).join("、") : "なし（全員確認済み）"}</div>` : ""}
       </article>`;
     }
     function addPost() {
@@ -2672,6 +2819,62 @@
     /* =========================
        Administration
        ========================= */
+    function workTemplateDayHint(start, end) {
+      return isOvernightTime(start, end) ? "翌日退勤（日またぎ勤務）" : "当日退勤";
+    }
+    function updateWorkTemplateHint(templateId) {
+      const start = document.getElementById(`workTemplate-${templateId}-start`)?.value || "";
+      const end = document.getElementById(`workTemplate-${templateId}-end`)?.value || "";
+      const hint = document.getElementById(`workTemplate-${templateId}-hint`);
+      if (!hint) return;
+      const overnight = isOvernightTime(start, end);
+      hint.textContent = workTemplateDayHint(start, end);
+      hint.classList.toggle("same-day", !overnight);
+    }
+    function renderWorkTemplateSection() {
+      const current = me();
+      if (!hasManagementAccess(current)) return "";
+      const templates = workTemplatesForCompany(current.companyId);
+      return `<section class="work-template-section" aria-labelledby="workTemplateHeading">
+        <div class="section-title"><span id="workTemplateHeading">勤務時間テンプレート</span><small>施設別設定</small></div>
+        <div class="card work-template-card">
+          <div class="info-box">${icon("clock","icon icon-sm")}<span>勤務記録の入力に使う時刻を設定します。この施設だけに反映され、デモを再読み込みすると初期値に戻ります。</span></div>
+          <div class="work-template-grid">
+            ${templates.map(template => {
+              const overnight = isOvernightTime(template.start, template.end);
+              return `<div class="work-template-row">
+                <span class="work-template-name">${escapeHTML(template.name)}</span>
+                <span class="work-template-field"><label for="workTemplate-${template.id}-start">出勤</label><input class="work-template-input" id="workTemplate-${template.id}-start" type="time" value="${escapeHTML(template.start)}" oninput="updateWorkTemplateHint('${template.id}')"></span>
+                <span class="work-template-field"><label for="workTemplate-${template.id}-end">退勤</label><input class="work-template-input" id="workTemplate-${template.id}-end" type="time" value="${escapeHTML(template.end)}" oninput="updateWorkTemplateHint('${template.id}')"></span>
+                <span class="work-template-overnight ${overnight ? "" : "same-day"}" id="workTemplate-${template.id}-hint">${workTemplateDayHint(template.start, template.end)}</span>
+              </div>`;
+            }).join("")}
+          </div>
+          <button class="work-template-save" type="button" onclick="saveWorkTemplates()">テンプレートを保存</button>
+        </div>
+      </section>`;
+    }
+    function saveWorkTemplates() {
+      const current = me();
+      if (!hasManagementAccess(current)) return;
+      const templates = workTemplatesForCompany(current.companyId);
+      const validTime = value => /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
+      const changes = templates.map(template => ({
+        template,
+        start:document.getElementById(`workTemplate-${template.id}-start`)?.value || "",
+        end:document.getElementById(`workTemplate-${template.id}-end`)?.value || ""
+      }));
+      if (changes.some(change => !validTime(change.start) || !validTime(change.end))) {
+        showToast("4種類すべての出勤・退勤時刻を入力してください");
+        return;
+      }
+      changes.forEach(change => {
+        change.template.start = change.start;
+        change.template.end = change.end;
+      });
+      renderApp();
+      showSuccess("この施設の勤務時間テンプレートを保存しました");
+    }
     function renderAdmin() {
       const u = me();
       if (!hasManagementAccess(u)) return "";
@@ -2706,7 +2909,8 @@
         <button class="invite-btn" type="button" onclick="showToast('職員用の招待リンクを発行しました')">${icon("plus","icon icon-sm")}職員を招待する</button>
         <div class="section-title"><span>家族アカウント</span><small>${family.length}名</small></div>
         ${family.length ? `<div class="account-grid">${family.map(row).join("")}</div>` : `<div class="empty">家族アカウントはまだありません。</div>`}
-        <button class="invite-btn" type="button" onclick="showToast('家族用の招待リンクを発行しました')">${icon("plus","icon icon-sm")}ご家族を招待する</button>`;
+        <button class="invite-btn" type="button" onclick="showToast('家族用の招待リンクを発行しました')">${icon("plus","icon icon-sm")}ご家族を招待する</button>
+        ${renderWorkTemplateSection()}`;
     }
     function toggleAdminRole(userId) {
       const actor = me();
@@ -2739,6 +2943,22 @@
       const [year, value] = String(month).split("-");
       return year && value ? `${year}年${Number(value)}月` : month;
     };
+    const previousMonthKey = month => {
+      const [year, value] = String(month).split("-").map(Number);
+      const date = new Date(year, value - 2, 1);
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2,"0")}`;
+    };
+    function incidentMonthStats(companyId, month) {
+      const previousMonth = previousMonthKey(month);
+      const countFor = targetMonth => DB.posts.filter(post =>
+        post.companyId === companyId &&
+        post.type === "incident" &&
+        monthKey(post.date) === targetMonth
+      ).length;
+      const current = countFor(month);
+      const previous = countFor(previousMonth);
+      return { current, previous, difference:current - previous };
+    }
     const dateLabel = date => {
       if (!date) return "日付なし";
       return new Intl.DateTimeFormat("ja-JP", { year:"numeric", month:"long", day:"numeric" }).format(new Date(`${date}T00:00:00`));
@@ -2786,6 +3006,8 @@
       if (!residents.some(r => r.id === state.exportResidentId)) state.exportResidentId = residents[0]?.id || null;
       const selectedResident = residentById(state.exportResidentId);
       const count = exportRecordCount();
+      const incidentStats = incidentMonthStats(u.companyId, state.exportMonth);
+      const incidentDifference = `${incidentStats.difference > 0 ? "+" : incidentStats.difference < 0 ? "" : "±"}${incidentStats.difference}件`;
       const isCsv = state.exportType === "attendance";
       const csvButtonLabel = "showDirectoryPicker" in window ? "保存先フォルダを選択して保存" : "CSVをダウンロード";
       const options = [
@@ -2796,6 +3018,7 @@
       return `
         ${pageHead("RECORD EXPORT","帳票出力","月ごとの記録を、監査・保管用の帳票として出力します。","export")}
         <div class="info-box export-intro">${icon("shield","icon icon-sm")}<span>この画面は施設長・管理者だけに表示されます。出力対象はログイン中の施設の記録に限定されます。</span></div>
+        <div class="incident-month-summary"><span>${icon("alert","icon icon-sm")} ${monthLabel(state.exportMonth)}のヒヤリハット</span><strong>${incidentStats.current}件</strong><small>前月比 ${incidentDifference}</small></div>
         <section class="export-step">
           <div class="export-step-head"><span class="export-step-number">1</span><span><strong>対象月を選択</strong><small>記録をまとめる月を指定してください</small></span></div>
           <label class="sr-only" for="exportMonth">対象月</label>
@@ -2874,9 +3097,13 @@
     .record-body { padding: 9px; font-size: 10.5px; }
     .reply { margin: 0 9px 9px; padding: 6px 8px; border-left: 3px solid #52789b; background: #eef4f8; font-size: 9.5px; }
     .list-table { table-layout: fixed; font-size: 8.8px; }
-    .list-table th, .list-table td { padding: 5px 4px; border: 1px solid #aab4b1; text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+    .list-table th, .list-table td { padding: 5px 4px; border: 1px solid #aab4b1; text-align: left; vertical-align: top; overflow-wrap: break-word; word-break: normal; }
     .list-table th { color: #fff; background: #315e53; font-weight: 700; }
     .list-table tr.incident td { background: #fff0e2; }
+    .list-table .nowrap { white-space: nowrap; word-break: keep-all; overflow-wrap: normal; }
+    .posts-report-table { table-layout: auto; }
+    .posts-report-table .body-cell { width: 100%; min-width: 66mm; overflow-wrap: anywhere; }
+    .attendance-report-table .nowrap { text-align: center; }
     .type-incident { color: #8e3b08; font-weight: 800; }
     .empty-print { padding: 34px; border: 1px solid #b8c1be; color: #66736f; text-align: center; }
     .print-footer { margin-top: 14px; padding-top: 6px; color: #66736f; border-top: 1px solid #b8c1be; font-size: 8.5px; text-align: right; }
@@ -2944,17 +3171,16 @@
           const resident = post.residentId ? residentById(post.residentId) : null;
           const author = userById(post.authorId);
           return `<tr class="${post.type === "incident" ? "incident" : ""}">
-            <td>${escapeHTML(post.date)}</td>
-            <td>${escapeHTML(post.time)}</td>
-            <td class="${post.type === "incident" ? "type-incident" : ""}">${post.type === "incident" ? "ヒヤリハット" : "通常"}</td>
+            <td class="nowrap">${escapeHTML(post.date)}</td>
+            <td class="nowrap">${escapeHTML(post.time)}</td>
+            <td class="nowrap ${post.type === "incident" ? "type-incident" : ""}">${post.type === "incident" ? "ヒヤリハット" : "通常"}</td>
             <td>${escapeHTML(resident?.name || "全体")}</td>
-            <td>${printableText(post.text)}</td>
-            <td>${escapeHTML(author?.name || "不明")}</td>
+            <td class="body-cell">${printableText(post.text)}</td>
+            <td class="nowrap">${escapeHTML(author?.name || "不明")}</td>
           </tr>`;
         }).join("");
-        const content = posts.length ? `<table class="list-table">
-          <colgroup><col style="width:11%"><col style="width:8%"><col style="width:13%"><col style="width:14%"><col style="width:40%"><col style="width:14%"></colgroup>
-          <thead><tr><th>日付</th><th>時間</th><th>種別</th><th>対象利用者</th><th>本文</th><th>記入者</th></tr></thead>
+        const content = posts.length ? `<table class="list-table posts-report-table">
+          <thead><tr><th class="nowrap">日付</th><th class="nowrap">時間</th><th class="nowrap">種別</th><th>対象利用者</th><th>本文</th><th class="nowrap">記入者</th></tr></thead>
           <tbody>${rows}</tbody>
         </table>` : `<div class="empty-print">この月の申し送り記録はありません。</div>`;
         printDocument("申し送り・ヒヤリハット一覧", "申し送り・ヒヤリハット一覧", content);
@@ -2994,17 +3220,17 @@
       const totalLabel = `${Math.floor(totalMinutes / 60)}時間${totalMinutes % 60}分`;
       const overtimeTotal = records.reduce((sum, record) => sum + overtimeMinutes(record), 0);
       const rows = records.map(record => `<tr>
-        <td>${escapeHTML(record.date)}</td>
-        <td>${escapeHTML(record.start || "--:--")}</td>
-        <td>${escapeHTML(record.end || "--:--")}</td>
-        <td>${escapeHTML(durationLabel(record))}</td>
-        <td>${escapeHTML(overtimeMinutesLabel(record))}</td>
+        <td class="nowrap">${escapeHTML(record.date)}</td>
+        <td class="nowrap">${escapeHTML(record.start || "--:--")}</td>
+        <td class="nowrap">${escapeHTML(record.end || "--:--")}</td>
+        <td class="nowrap">${escapeHTML(durationLabel(record))}</td>
+        <td class="nowrap">${escapeHTML(overtimeMinutesLabel(record))}</td>
       </tr>`).join("");
       const content = `
         <div class="record-head"><span>職員：${escapeHTML(person.name)}（${escapeHTML(person.roleLabel)}）</span><span>出勤 ${records.length}日｜合計 ${totalLabel}｜超過 ${minutesLabel(overtimeTotal)}</span></div>
-        ${records.length ? `<table class="list-table">
+        ${records.length ? `<table class="list-table attendance-report-table">
           <colgroup><col style="width:28%"><col style="width:18%"><col style="width:18%"><col style="width:18%"><col style="width:18%"></colgroup>
-          <thead><tr><th>日付</th><th>出勤時刻</th><th>退勤時刻</th><th>勤務時間</th><th>超過時間</th></tr></thead>
+          <thead><tr><th class="nowrap">日付</th><th class="nowrap">出勤時刻</th><th class="nowrap">退勤時刻</th><th class="nowrap">勤務時間</th><th class="nowrap">超過時間</th></tr></thead>
           <tbody>${rows}</tbody>
         </table>` : `<div class="empty-print">この月の勤務記録はありません。</div>`}`;
       printDocument("個人勤務履歴", `${person.name}｜勤務履歴`, content, month);
