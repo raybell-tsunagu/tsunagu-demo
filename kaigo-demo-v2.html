@@ -1640,11 +1640,11 @@
         { id: "u6", companyId: "c2", name: "中村 結衣", role: "staff", roleLabel: "介護職員", pin: "0000" },
         { id: "u7", companyId: "c2", name: "渡辺 直樹", role: "family", roleLabel: "渡辺トメ様 ご家族", residentId: "r4", pin: "0000" },
         { id: "u8", companyId: "c2", name: "小林 健", role: "staff", roleLabel: "介護職員", pin: "0000" },
-        { id: "u9", companyId: "c3", name: "松本 由美", role: "admin", roleLabel: "施設長", pin: "5183" },
-        { id: "u10", companyId: "c3", name: "井上 恵", role: "staff", roleLabel: "介護職員", pin: "5183" },
-        { id: "u11", companyId: "c3", name: "中島 正志", role: "family", roleLabel: "中島フミ様 ご家族", residentId: "r6", pin: "5183" },
-        { id: "u12", companyId: "c3", name: "石井 亮", role: "staff", roleLabel: "介護職員", pin: "5183" },
-        { id: "u13", companyId: "c3", name: "朝比奈 そら", role: "staff", roleLabel: "介護職員", pin: "5183" }
+        { id: "u9", companyId: "c3", name: "松本 由美", role: "admin", roleLabel: "施設長", pin: "0000" },
+        { id: "u10", companyId: "c3", name: "井上 恵", role: "staff", roleLabel: "介護職員", pin: "0000" },
+        { id: "u11", companyId: "c3", name: "中島 正志", role: "family", roleLabel: "中島フミ様 ご家族", residentId: "r6", pin: "0000" },
+        { id: "u12", companyId: "c3", name: "石井 亮", role: "staff", roleLabel: "介護職員", pin: "0000" },
+        { id: "u13", companyId: "c3", name: "朝比奈 そら", role: "staff", roleLabel: "介護職員", pin: "0000" }
       ],
       residents: [
         { id: "r1", companyId: "c1", name: "鈴木 ハル", age: 88, care: "要介護2", note: "右下肢に筋力低下あり。食事は刻み食・とろみ付きで提供。" },
@@ -1870,7 +1870,7 @@
             <div class="stepper" aria-label="ログイン手順">${stepper}</div>
             ${body}
           </div>
-          <div class="demo-hint">デモ用: himawari / sakura は PIN 0000、kanekiyo は PIN 5183</div>
+          <div class="demo-hint">デモ用: 企業ID himawari / sakura / kanekiyo、PIN 0000</div>
           <div class="security-note">${icon("shield","icon icon-sm")}<span>記録は暗号化され、施設ごとに分離して安全に保管されます（デモ表示）</span></div>
         </section>`;
       if (state.loginStep === "company") setTimeout(() => document.getElementById("companyCode")?.focus(), 0);
