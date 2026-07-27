@@ -2058,8 +2058,7 @@
     const DB = {
       companies: [
         { id: "c1", code: "himawari", name: "ひまわりデイサービス", type: "通所介護" },
-        { id: "c2", code: "sakura", name: "グループホーム さくらの家", type: "認知症対応型共同生活介護" },
-        { id: "c3", code: "kanekiyo", name: "兼清メディカルサービス", type: "認知症対応型共同生活介護" }
+        { id: "c2", code: "sakura", name: "グループホーム さくらの家", type: "認知症対応型共同生活介護" }
       ],
       users: [
         { id: "u1", companyId: "c1", name: "山田 今日子", role: "admin", roleLabel: "施設長", pin: "0000" },
@@ -2069,21 +2068,14 @@
         { id: "u5", companyId: "c2", name: "山口 誠", role: "admin", roleLabel: "管理者", pin: "0000" },
         { id: "u6", companyId: "c2", name: "中村 結衣", role: "staff", roleLabel: "介護職員", pin: "0000" },
         { id: "u7", companyId: "c2", name: "渡辺 直樹", role: "family", roleLabel: "渡辺トメ様 ご家族", residentId: "r4", pin: "0000" },
-        { id: "u8", companyId: "c2", name: "小林 健", role: "staff", roleLabel: "介護職員", pin: "0000" },
-        { id: "u9", companyId: "c3", name: "松本 由美", role: "admin", roleLabel: "施設長", pin: "0000" },
-        { id: "u10", companyId: "c3", name: "井上 恵", role: "staff", roleLabel: "介護職員", pin: "0000" },
-        { id: "u11", companyId: "c3", name: "中島 正志", role: "family", roleLabel: "中島フミ様 ご家族", residentId: "r6", pin: "0000" },
-        { id: "u12", companyId: "c3", name: "石井 亮", role: "staff", roleLabel: "介護職員", pin: "0000" },
-        { id: "u13", companyId: "c3", name: "朝比奈 そら", role: "staff", roleLabel: "介護職員", pin: "0000" }
+        { id: "u8", companyId: "c2", name: "小林 健", role: "staff", roleLabel: "介護職員", pin: "0000" }
       ],
       residents: [
         { id: "r1", companyId: "c1", name: "鈴木 ハル", age: 88, care: "要介護2", note: "右下肢に筋力低下あり。食事は刻み食・とろみ付きで提供。" },
         { id: "r2", companyId: "c1", name: "高橋 芳江", age: 92, care: "要介護3", note: "左肩に疼痛あり。移乗は職員2名で介助。" },
         { id: "r3", companyId: "c1", name: "伊藤 キヨ", age: 85, care: "要介護1", note: "難聴のため、正面からゆっくりお話しください。" },
         { id: "r4", companyId: "c2", name: "渡辺 トメ", age: 90, care: "要介護3", note: "夜間の離床傾向あり。センサーマットを使用中。" },
-        { id: "r5", companyId: "c2", name: "小林 勇", age: 87, care: "要介護2", note: "糖尿病のため、間食の量を確認してください。" },
-        { id: "r6", companyId: "c3", name: "中島 フミ", age: 89, care: "要介護3", note: "歩行時にふらつきあり。移動時は必ず職員が付き添ってください。" },
-        { id: "r7", companyId: "c3", name: "松田 茂", age: 84, care: "要介護2", note: "水分摂取量が少ないため、こまめな声かけをお願いします。" }
+        { id: "r5", companyId: "c2", name: "小林 勇", age: 87, care: "要介護2", note: "糖尿病のため、間食の量を確認してください。" }
       ],
       posts: [
         { id: "p1", companyId: "c1", authorId: "u3", type: "normal", shift: "日勤", residentId: "r1", important: true, text: "鈴木ハル様、昼食時にむせ込みが1回ありました。夕食時は姿勢を確認し、一口量を少なめにしてください。水分はとろみ強めでお願いします。", date: "2026-07-25", time: "13:45", readBy: ["u1"] },
@@ -2091,9 +2083,7 @@
         { id: "p3", companyId: "c1", authorId: "u1", type: "normal", shift: "日勤", residentId: null, important: false, text: "明日10時からご家族の見学があります。フロアの整理整頓をお願いします。", date: "2026-07-25", time: "11:05", readBy: ["u2"] },
         { id: "p8", companyId: "c1", authorId: "u2", type: "incident", shift: "遅番", residentId: "r3", important: false, text: "【状況】\n居室から食堂へ移動中、伊藤キヨ様が椅子の脚につまずきかけました。職員が支えたため転倒・外傷はありません。\n\n【対応】\n歩行経路の椅子を移動し、床面と動線を再確認しました。移動時の見守りを継続します。", date: "2026-07-24", time: "16:40", readBy: ["u1"] },
         { id: "p4", companyId: "c2", authorId: "u6", type: "incident", shift: "夜勤", residentId: "r4", important: true, text: "【状況】\n深夜2時頃、離床センサーが作動。廊下を歩かれていました。\n\n【対応】\n居室へご案内し、水分補給後に再入眠されました。日中の様子を観察してください。", date: "2026-07-25", time: "06:30", readBy: [] },
-        { id: "p5", companyId: "c2", authorId: "u5", type: "normal", shift: "日勤", residentId: "r5", important: false, text: "小林様のご家族から饅頭の差し入れがありました。血糖値との関係で、1日1個までとしています。", date: "2026-07-25", time: "14:10", readBy: ["u6"] },
-        { id: "p6", companyId: "c3", authorId: "u10", type: "normal", shift: "日勤", residentId: "r6", important: true, text: "中島フミ様、昼食後に立ち上がる際、少しふらつきが見られました。移動時の付き添いをお願いします。", date: "2026-07-25", time: "13:20", readBy: ["u9"] },
-        { id: "p7", companyId: "c3", authorId: "u12", type: "incident", shift: "早番", residentId: "r7", important: false, text: "【状況】\n居室前で足元がもつれ、壁に手をつかれました。転倒はありません。\n\n【対応】\nバイタルに異常なし。歩行状態を継続して観察します。", date: "2026-07-25", time: "09:05", readBy: [] }
+        { id: "p5", companyId: "c2", authorId: "u5", type: "normal", shift: "日勤", residentId: "r5", important: false, text: "小林様のご家族から饅頭の差し入れがありました。血糖値との関係で、1日1個までとしています。", date: "2026-07-25", time: "14:10", readBy: ["u6"] }
       ],
       renraku: [
         { id: "n1", companyId: "c1", residentId: "r1", dateKey: "2026-07-25", date: "7月25日（土）", authorId: "u2", meal: "8割", mood: "穏やか", bath: "入浴あり", text: "今日は書道レクに参加され、「夏」という字を書かれました。とても集中されていて、素敵な作品になりました。", replies: [{ author: "鈴木 和子", text: "いつもありがとうございます。母が書道好きなのを覚えていてくださって嬉しいです。" }] },
@@ -2101,17 +2091,13 @@
         { id: "n3", companyId: "c1", residentId: "r2", dateKey: "2026-07-25", date: "7月25日（土）", authorId: "u2", meal: "7割", mood: "普通", bath: "入浴あり", text: "入浴後は少しお疲れの様子でしたが、水分をしっかり摂って休まれました。", replies: [] },
         { id: "n4", companyId: "c1", residentId: "r3", dateKey: "2026-07-25", date: "7月25日（土）", authorId: "u3", meal: "9割", mood: "明るい", bath: "なし", text: "午後の歌の会では、懐かしい曲を口ずさみながら楽しまれていました。", replies: [] },
         { id: "n5", companyId: "c2", residentId: "r4", dateKey: "2026-07-25", date: "7月25日（土）", authorId: "u6", meal: "9割", mood: "穏やか", bath: "なし", text: "午前中は塗り絵をされ、午後は居室で休まれました。夜間に備え、日中の活動量を少し増やしています。", replies: [{ author: "渡辺 直樹", text: "夜のこと、いつも見守りありがとうございます。" }] },
-        { id: "n6", companyId: "c2", residentId: "r5", dateKey: "2026-07-25", date: "7月25日（土）", authorId: "u8", meal: "10割", mood: "明るい", bath: "入浴あり", text: "午前中は散歩に参加されました。帰所後も体調に変化なく、昼食は完食されています。", replies: [] },
-        { id: "n7", companyId: "c3", residentId: "r6", dateKey: "2026-07-25", date: "7月25日（土）", authorId: "u10", meal: "8割", mood: "穏やか", bath: "入浴あり", text: "午前中は季節の飾り作りに参加されました。職員と会話をしながら、笑顔で取り組まれていました。", replies: [{ author: "中島 正志", text: "楽しそうな様子を教えていただき、ありがとうございます。" }] },
-        { id: "n8", companyId: "c3", residentId: "r7", dateKey: "2026-07-25", date: "7月25日（土）", authorId: "u12", meal: "9割", mood: "普通", bath: "なし", text: "午後のお茶の時間には水分をしっかり摂られました。体調に変化はありません。", replies: [] }
+        { id: "n6", companyId: "c2", residentId: "r5", dateKey: "2026-07-25", date: "7月25日（土）", authorId: "u8", meal: "10割", mood: "明るい", bath: "入浴あり", text: "午前中は散歩に参加されました。帰所後も体調に変化なく、昼食は完食されています。", replies: [] }
       ],
       attendance: [
         { id: "a1", companyId: "c1", userId: "u1", date: todayKey(), start: "08:15", end: null },
         { id: "a2", companyId: "c1", userId: "u3", date: todayKey(), start: "08:28", end: null },
         { id: "a3", companyId: "c2", userId: "u5", date: todayKey(), start: "08:10", end: null },
-        { id: "a4", companyId: "c2", userId: "u8", date: todayKey(), start: "07:55", end: "16:30" },
-        { id: "a5", companyId: "c3", userId: "u9", date: todayKey(), start: "08:05", end: null },
-        { id: "a6", companyId: "c3", userId: "u12", date: todayKey(), start: "07:50", end: null }
+        { id: "a4", companyId: "c2", userId: "u8", date: todayKey(), start: "07:55", end: "16:30" }
       ]
     };
 
@@ -2396,7 +2382,7 @@
             ${familyNote}
           </div>
           ${qrLink}
-          <div class="demo-hint">デモ用: 企業ID himawari / sakura / kanekiyo、PIN 0000</div>
+          <div class="demo-hint">デモ用: 企業ID himawari / sakura、PIN 0000</div>
           <div class="security-note">${icon("shield","icon icon-sm")}<span>記録は暗号化され、施設ごとに分離して安全に保管されます（デモ表示）</span></div>
           <a class="service-page-link" href="./index.html">サービス紹介ページへ</a>
         </section>`;
