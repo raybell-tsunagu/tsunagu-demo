@@ -409,6 +409,25 @@
       text-align: center;
     }
     .security-note .icon { width: 14px; height: 14px; margin-top: 1px; color: var(--brand-dark); }
+    .qr-login-link {
+      display: inline-flex;
+      min-height: 44px;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      margin: 4px auto 0;
+      padding: 0 13px;
+      color: var(--brand-dark);
+      border: 0;
+      border-radius: 10px;
+      background: transparent;
+      font-size: 12px;
+      font-weight: 800;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      cursor: pointer;
+    }
+    .qr-login-link .icon { width: 17px; height: 17px; }
     .lock-screen .login-panel { max-width: 420px; }
     .lock-message {
       display: flex;
@@ -1175,6 +1194,7 @@
     .role-badge.staff { color: var(--brand-dark); background: var(--brand-soft); }
     .role-badge.family { color: var(--family); background: var(--family-soft); }
     .account-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+    .account-button-row { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
     .permission-btn {
       display: inline-flex;
       min-height: 44px;
@@ -1192,6 +1212,73 @@
     }
     .permission-btn.remove { color: var(--important); border-color: #e4bbb7; background: var(--important-soft); }
     .permission-btn:disabled { color: var(--subtle); border-color: var(--line); background: #f1f3f2; cursor: not-allowed; }
+    .account-edit-btn, .account-delete-btn {
+      display: inline-flex;
+      min-height: 44px;
+      align-items: center;
+      justify-content: center;
+      padding: 0 11px;
+      border: 1px solid var(--line-strong);
+      border-radius: 10px;
+      background: #fff;
+      font-size: 10.5px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .account-edit-btn { color: var(--brand-dark); }
+    .account-delete-btn { color: var(--important); border-color: #e4bbb7; background: var(--important-soft); }
+    .account-delete-btn:disabled { color: var(--subtle); border-color: var(--line); background: #f1f3f2; cursor: not-allowed; }
+    .account-admin-note { margin: 9px 2px 0; color: var(--muted); font-size: 10.5px; }
+    .account-tools { display: grid; gap: 9px; margin-top: 16px; }
+    .account-qr-btn {
+      display: inline-flex;
+      width: 100%;
+      min-height: 48px;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      color: var(--brand-dark);
+      border: 1px solid #a9c6bd;
+      border-radius: 12px;
+      background: #fff;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .account-form { display: grid; gap: 13px; }
+    .account-form h2 { margin: 0; color: var(--brand-dark); font-size: 20px; }
+    .account-form-lead { margin: -7px 0 0; color: var(--muted); font-size: 11px; }
+    .account-form-field { display: grid; gap: 5px; }
+    .account-form-field label { color: #445b54; font-size: 11px; font-weight: 800; }
+    .account-form-input {
+      width: 100%;
+      min-height: 48px;
+      padding: 9px 11px;
+      color: var(--ink);
+      border: 1px solid var(--line-strong);
+      border-radius: 11px;
+      background: #fff;
+      font-size: 15px;
+    }
+    .pin-input-row { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px; }
+    .pin-generate-btn {
+      min-height: 48px;
+      padding: 0 13px;
+      color: var(--brand-dark);
+      border: 1px solid var(--brand);
+      border-radius: 11px;
+      background: var(--brand-pale);
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .generated-pin { min-height: 20px; color: var(--brand-dark); font-size: 11px; font-weight: 800; }
+    .account-form-error { min-height: 22px; color: var(--important); font-size: 11px; font-weight: 800; }
+    .account-form-actions { display: grid; grid-template-columns: 1fr 1.4fr; gap: 8px; }
+    .account-form-actions button { min-height: 48px; border-radius: 11px; font-size: 12px; font-weight: 800; cursor: pointer; }
+    .account-form-cancel { color: var(--brand-dark); border: 1px solid var(--line-strong); background: #fff; }
+    .account-form-save { color: #fff; border: 0; background: var(--brand); }
     .work-template-section { margin-top: 18px; }
     .work-template-card { padding: 15px; }
     .work-template-grid { display: grid; gap: 10px; }
@@ -1376,7 +1463,7 @@
       width: 100%;
       max-width: 480px;
       min-height: 66px;
-      overflow-x: auto;
+      overflow: hidden;
       margin: 0 auto;
       padding: 5px 4px calc(5px + env(safe-area-inset-bottom));
       border-top: 1px solid var(--line);
@@ -1384,6 +1471,9 @@
       box-shadow: 0 -5px 20px rgba(29,52,45,.07);
       backdrop-filter: blur(10px);
     }
+    .nav-set { width: 100%; }
+    .nav-mobile { display: flex; }
+    .nav-desktop { display: none; }
     .nav-item {
       position: relative;
       display: flex;
@@ -1405,6 +1495,25 @@
     .nav-item.active { color: var(--brand-dark); background: var(--brand-pale); }
     .nav-item .icon { width: 21px; height: 21px; }
     .nav-badge { position: absolute; top: 2px; left: calc(50% + 6px); min-width: 18px; height: 18px; padding: 0 4px; color: #fff; border: 2px solid #fff; border-radius: 99px; background: var(--important); font-size: 8px; line-height: 14px; }
+    .more-menu-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; }
+    .more-menu-item {
+      position: relative;
+      display: flex;
+      min-height: 82px;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      color: var(--ink);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .more-menu-item.active { color: var(--brand-dark); border-color: #91bcb0; background: var(--brand-pale); }
+    .more-menu-item .icon { color: var(--brand); }
 
     /* Feedback */
     .toast {
@@ -1470,6 +1579,38 @@
       box-shadow: 0 -16px 50px rgba(17,48,39,.24);
       animation: sheetUp .2s ease;
     }
+    .more-menu-sheet { max-width: 480px; }
+    .sheet-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 4px 0 14px; }
+    .sheet-heading h2 { margin: 0; color: var(--brand-dark); font-size: 19px; }
+    .sheet-close {
+      display: inline-flex;
+      min-width: 44px;
+      min-height: 44px;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      border: 1px solid var(--line);
+      border-radius: 99px;
+      background: #fff;
+      font-size: 20px;
+      cursor: pointer;
+    }
+    .qr-sheet { max-width: 420px; text-align: center; }
+    .qr-sheet .sheet-heading { text-align: left; }
+    .qr-copy { margin: -4px 0 14px; color: var(--muted); font-size: 12px; text-align: left; }
+    .qr-code-box {
+      display: grid;
+      width: min(260px, 100%);
+      min-height: 260px;
+      place-items: center;
+      margin: 0 auto 12px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+    }
+    .qr-code-box canvas, .qr-code-box img { display: block; max-width: 100%; height: auto !important; image-rendering: pixelated; }
+    .qr-url { margin: 0; color: var(--subtle); font-size: 9px; overflow-wrap: anywhere; }
     .detail-handle { width: 42px; height: 4px; margin: 1px auto 14px; border-radius: 99px; background: #c6d2ce; }
     .detail-person {
       display: flex;
@@ -1559,6 +1700,12 @@
       from { opacity: 0; transform: translateY(24px); }
       to { opacity: 1; transform: translateY(0); }
     }
+    @media (max-width: 719px) {
+      .account-row { grid-template-columns: 42px minmax(0,1fr); }
+      .account-actions { grid-column: 1 / -1; align-items: stretch; }
+      .account-button-row { justify-content: stretch; }
+      .account-button-row button { flex: 1 1 110px; }
+    }
     @media (min-width: 720px) {
       body { padding: 12px 16px; }
       #app {
@@ -1608,6 +1755,8 @@
         overflow-x: visible;
         overflow-y: auto;
       }
+      .nav-mobile { display: none; }
+      .nav-desktop { display: flex; flex-direction: column; gap: 6px; }
       .nav-item {
         width: 100%;
         min-width: 0;
@@ -1744,6 +1893,9 @@
         <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18M7 14h2M12 14h2M17 14h.01M7 18h2M12 18h2"/></symbol>
         <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 20 6v5c0 5-3.3 8.4-8 10-4.7-1.6-8-5-8-10V6Z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></symbol>
         <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 15v2"/></symbol>
+        <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></symbol>
+        <symbol id="i-qr" viewBox="0 0 24 24"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3z"/><path d="M15 14h2v2h-2zM19 14h2v4h-2zM14 19h4v2h-4zM20 20h1v1h-1z"/></symbol>
+        <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4l11-11-4-4L4 16Z"/><path d="m13.5 6.5 4 4"/></symbol>
       </defs>
     </svg>
 
@@ -1784,8 +1936,31 @@
         <div id="attendanceDetail"></div>
       </section>
     </div>
+    <div class="detail-modal" id="mobileMoreModal" aria-hidden="true" onclick="if(event.target===this)closeMoreMenu()">
+      <section class="detail-sheet more-menu-sheet" role="dialog" aria-modal="true" aria-labelledby="moreMenuTitle">
+        <div class="detail-handle" aria-hidden="true"></div>
+        <div class="sheet-heading"><h2 id="moreMenuTitle">その他の機能</h2><button class="sheet-close" type="button" onclick="closeMoreMenu()" aria-label="閉じる">×</button></div>
+        <div class="more-menu-grid" id="mobileMoreContent"></div>
+      </section>
+    </div>
+    <div class="detail-modal" id="accountModal" aria-hidden="true" onclick="if(event.target===this)closeAccountModal()">
+      <section class="detail-sheet" role="dialog" aria-modal="true" aria-labelledby="accountFormTitle">
+        <div class="detail-handle" aria-hidden="true"></div>
+        <div id="accountModalContent"></div>
+      </section>
+    </div>
+    <div class="detail-modal" id="qrModal" aria-hidden="true" onclick="if(event.target===this)closeQrModal()">
+      <section class="detail-sheet qr-sheet" role="dialog" aria-modal="true" aria-labelledby="qrModalTitle">
+        <div class="detail-handle" aria-hidden="true"></div>
+        <div class="sheet-heading"><h2 id="qrModalTitle">ログイン用QRコード</h2><button class="sheet-close" type="button" onclick="closeQrModal()" aria-label="閉じる">×</button></div>
+        <p class="qr-copy">タブレットやスマートフォンのカメラで読み取ると、このログイン画面を開けます。</p>
+        <div class="qr-code-box" id="qrCodeBox" aria-label="ログインページのQRコード"></div>
+        <p class="qr-url" id="qrUrlText"></p>
+      </section>
+    </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <script>
     "use strict";
 
@@ -1973,6 +2148,8 @@
       workRecordUserId: null,
       workRecordMonth: todayKey().slice(0,7),
       workRecordEditingId: null,
+      accountFormType: null,
+      accountEditingId: null,
       exportMonth: "2026-07",
       exportType: "renraku",
       exportResidentId: null,
@@ -2115,6 +2292,9 @@
       const familyNote = isFamilyLogin && state.loginStep !== "audience"
         ? `<div class="family-login-note">${icon("info","icon icon-sm")}<span>本サービスでは、ご家族はメールアドレスとパスワードでログインします。現在はデモ用のPIN画面です。</span></div>`
         : "";
+      const qrLink = state.loginStep === "audience"
+        ? `<button class="qr-login-link" type="button" onclick="openQrModal()">${icon("qr","icon icon-sm")}QRコードを表示</button>`
+        : "";
 
       root.innerHTML = `
         <section class="login">
@@ -2127,6 +2307,7 @@
             ${body}
             ${familyNote}
           </div>
+          ${qrLink}
           <div class="demo-hint">デモ用: 企業ID himawari / sakura / kanekiyo、PIN 0000</div>
           <div class="security-note">${icon("shield","icon icon-sm")}<span>記録は暗号化され、施設ごとに分離して安全に保管されます（デモ表示）</span></div>
         </section>`;
@@ -2196,6 +2377,36 @@
       state.pinError = "";
       renderLogin();
     }
+    function openQrModal() {
+      const modal = document.getElementById("qrModal");
+      const box = document.getElementById("qrCodeBox");
+      const urlText = document.getElementById("qrUrlText");
+      if (!modal || !box || !urlText) return;
+      const url = location.href;
+      box.innerHTML = "";
+      urlText.textContent = url;
+      modal.classList.add("open");
+      modal.setAttribute("aria-hidden","false");
+      if (typeof QRCode === "function") {
+        new QRCode(box, {
+          text:url,
+          width:240,
+          height:240,
+          colorDark:"#153f36",
+          colorLight:"#ffffff",
+          correctLevel:QRCode.CorrectLevel.M
+        });
+      } else {
+        box.innerHTML = `<div class="empty">QRコードを生成できませんでした。通信状態を確認して、もう一度お試しください。</div>`;
+      }
+      setTimeout(() => modal.querySelector(".sheet-close")?.focus(), 0);
+    }
+    function closeQrModal() {
+      const modal = document.getElementById("qrModal");
+      if (!modal) return;
+      modal.classList.remove("open");
+      modal.setAttribute("aria-hidden","true");
+    }
     function pressPin(digit) {
       if (state.loginStep !== "pin" || state.pin.length >= 4) return;
       state.pinError = "";
@@ -2258,6 +2469,9 @@
       state.lockPin = "";
       state.lockError = "";
       closeAttendanceDetail();
+      closeMoreMenu();
+      closeAccountModal();
+      closeQrModal();
       renderLockScreen();
     }
     function renderLockScreen() {
@@ -2334,6 +2548,9 @@
     }
     function logout() {
       closeAttendanceDetail();
+      closeMoreMenu();
+      closeAccountModal();
+      closeQrModal();
       clearTimeout(inactivityTimer);
       inactivityTimer = null;
       state.userId = null;
@@ -2385,6 +2602,7 @@
       }
     }
     function setRoute(view, skipHistory = false) {
+      closeMoreMenu();
       if (!allowedViews().includes(view)) view = defaultView();
       if (!skipHistory && state.view !== view && allowedViews().includes(state.view)) {
         state.viewHistory.push(state.view);
@@ -2433,13 +2651,46 @@
     }
     function renderNav() {
       const unread = unreadCount();
-      document.getElementById("bottomNav").innerHTML = navItems().map(item => `
+      const items = navItems();
+      const primaryIds = ["home","kintai","posts","renraku"];
+      const mobilePrimary = items.filter(item => primaryIds.includes(item.id));
+      const secondary = items.filter(item => !primaryIds.includes(item.id));
+      const button = item => `
         <button class="nav-item ${state.view === item.id ? "active" : ""}" type="button" onclick="setRoute('${item.id}')"
           aria-current="${state.view === item.id ? "page" : "false"}">
           ${icon(item.icon)}
           <span>${item.label}</span>
           ${item.id === "posts" && unread ? `<span class="nav-badge" aria-label="未読${unread}件">${unread}</span>` : ""}
-        </button>`).join("");
+        </button>`;
+      document.getElementById("bottomNav").innerHTML = `
+        <div class="nav-set nav-mobile">
+          ${mobilePrimary.map(button).join("")}
+          ${secondary.length ? `<button class="nav-item ${secondary.some(item => item.id === state.view) ? "active" : ""}" type="button" onclick="openMoreMenu()" aria-haspopup="dialog" aria-expanded="false">
+            ${icon("more")}<span>その他</span>
+          </button>` : ""}
+        </div>
+        <div class="nav-set nav-desktop">${items.map(button).join("")}</div>`;
+    }
+    function openMoreMenu() {
+      const modal = document.getElementById("mobileMoreModal");
+      const content = document.getElementById("mobileMoreContent");
+      if (!modal || !content || !me()) return;
+      const primaryIds = ["home","kintai","posts","renraku"];
+      const items = navItems().filter(item => !primaryIds.includes(item.id));
+      content.innerHTML = items.map(item => `<button class="more-menu-item ${state.view === item.id ? "active" : ""}" type="button" onclick="setRoute('${item.id}')">
+        ${icon(item.icon,"icon icon-lg")}<span>${escapeHTML(item.label)}</span>
+      </button>`).join("");
+      modal.classList.add("open");
+      modal.setAttribute("aria-hidden","false");
+      document.querySelector(".nav-mobile .nav-item:last-child")?.setAttribute("aria-expanded","true");
+      setTimeout(() => content.querySelector("button")?.focus(), 0);
+    }
+    function closeMoreMenu() {
+      const modal = document.getElementById("mobileMoreModal");
+      if (!modal) return;
+      modal.classList.remove("open");
+      modal.setAttribute("aria-hidden","true");
+      document.querySelector(".nav-mobile .nav-item:last-child")?.setAttribute("aria-expanded","false");
     }
     function pageHead(eyebrow, title, desc, iconName) {
       return `<div class="page-head"><div><p class="eyebrow">${eyebrow}</p><h1>${title}</h1>${desc ? `<p>${desc}</p>` : ""}</div><span class="page-symbol">${icon(iconName,"icon icon-lg")}</span></div>`;
@@ -2781,7 +3032,8 @@
     function workRecordAuditLabel(entry) {
       const actor = userById(entry.actorId);
       const [,month,day] = String(entry.date || "").split("-");
-      return `${Number(month)}/${Number(day)} ${actor?.name || "管理者"}が${entry.action}`;
+      const time = entry.time ? ` ${entry.time}` : "";
+      return `${Number(month)}/${Number(day)}${time} ${actor?.name || "管理者"}が${entry.action}`;
     }
     function renderWorkRecordEditor(target) {
       if (!canManageWorkRecords(me()) || !state.workRecordEditingId) return "";
@@ -2846,7 +3098,7 @@
           date,
           start,
           end:end || null,
-          auditTrail:[{ date:todayKey(), actorId:current.id, action:"追加" }]
+          auditTrail:[{ date:todayKey(), time:currentTime(), actorId:current.id, action:"追加" }]
         });
       } else {
         const record = DB.attendance.find(item => item.id === recordId && item.companyId === current.companyId && item.userId === target.id);
@@ -2854,7 +3106,7 @@
         record.date = date;
         record.start = start;
         record.end = end || null;
-        record.auditTrail = [...(record.auditTrail || []), { date:todayKey(), actorId:current.id, action:"修正" }];
+        record.auditTrail = [...(record.auditTrail || []), { date:todayKey(), time:currentTime(), actorId:current.id, action:"修正" }];
       }
       state.workRecordEditingId = null;
       renderApp();
@@ -2937,7 +3189,7 @@
             <div class="monthly-record-time"><span>勤務</span><strong>${durationLabel(record)}</strong></div>
             <div class="monthly-record-time overtime"><span>超過</span><strong>${overtimeMinutesLabel(record)}</strong></div>
           </div>
-          ${canManage && record.auditTrail?.length ? `<div class="audit-trail"><strong>修正履歴</strong>${record.auditTrail.slice(-3).reverse().map(entry => `<span>${escapeHTML(workRecordAuditLabel(entry))}</span>`).join("")}</div>` : ""}
+          ${record.auditTrail?.length ? `<div class="audit-trail"><strong>操作履歴</strong>${record.auditTrail.slice(-3).reverse().map(entry => `<span>${escapeHTML(workRecordAuditLabel(entry))}</span>`).join("")}</div>` : ""}
           ${canManage ? `<button class="monthly-record-edit" type="button" onclick="editWorkRecord('${record.id}')">修正する</button>` : ""}
         </article>`).join("")}</div>` : `<div class="empty">この月の勤務記録はありません。</div>`}`;
     }
@@ -3455,16 +3707,9 @@
       if (!hasManagementAccess(u)) return "";
       const staff = DB.users.filter(x => x.companyId === u.companyId && x.role !== "family");
       const family = DB.users.filter(x => x.companyId === u.companyId && x.role === "family");
-      const row = (person, canManage = false) => {
+      const row = person => {
         const isCurrentUser = person.id === u.id;
         const personHasManagementAccess = hasManagementAccess(person);
-        const permissionAction = !canManage ? "" : isCurrentUser
-          ? `<button class="permission-btn" type="button" disabled>ログイン中</button>`
-          : person.role === "admin"
-            ? `<button class="permission-btn" type="button" disabled>施設長権限</button>`
-            : personHasManagementAccess
-            ? `<button class="permission-btn remove" type="button" onclick="toggleAdminRole('${person.id}')" aria-label="${escapeHTML(person.name)}さんの管理権限を解除">管理権限を解除</button>`
-            : `<button class="permission-btn" type="button" onclick="toggleAdminRole('${person.id}')" aria-label="${escapeHTML(person.name)}さんに管理権限を付与">管理権限を付与</button>`;
         const badgeClass = personHasManagementAccess ? "admin" : person.role;
         const badgeLabel = person.role === "admin" ? "管理者" : personHasManagementAccess ? "管理権限あり" : person.role === "family" ? "家族" : "職員";
         return `<div class="card account-row">
@@ -3472,20 +3717,183 @@
           <span><span class="account-name">${escapeHTML(person.name)}</span><span class="account-detail">${escapeHTML(person.roleLabel)}</span></span>
           <span class="account-actions">
             <span class="role-badge ${badgeClass}">${badgeLabel}</span>
-            ${permissionAction}
+            <span class="account-button-row">
+              <button class="account-edit-btn" type="button" onclick="openAccountModal('${person.role === "family" ? "family" : "staff"}','${person.id}')">${icon("edit","icon icon-sm")}編集</button>
+              <button class="account-delete-btn" type="button" onclick="deleteAccount('${person.id}')" ${isCurrentUser ? "disabled" : ""}>${isCurrentUser ? "本人は削除不可" : "削除"}</button>
+            </span>
           </span>
         </div>`;
       };
       return `
         ${pageHead("ADMINISTRATION","管理","施設のアカウントを確認・管理します。","admin")}
-        <div class="info-box">${icon("info","icon icon-sm")}<span>管理権限を付与した職員は、全職員の勤務記録とシフトを編集でき、「管理」と「帳票出力」も利用できます。職種表示は変わりません。変更内容はこのデモを再読み込みすると元に戻ります。</span></div>
+        <div class="info-box">${icon("info","icon icon-sm")}<span>職員・ご家族の追加、氏名・役職・PINの変更、アカウント削除ができます。変更内容はこのデモを再読み込みすると元に戻ります。</span></div>
         <div class="section-title"><span>職員アカウント</span><small>${staff.length}名</small></div>
-        <div class="account-grid">${staff.map(person => row(person, true)).join("")}</div>
-        <button class="invite-btn" type="button" onclick="showToast('職員用の招待リンクを発行しました')">${icon("plus","icon icon-sm")}職員を招待する</button>
+        <div class="account-grid">${staff.map(row).join("")}</div>
+        <button class="invite-btn" type="button" onclick="openAccountModal('staff')">${icon("plus","icon icon-sm")}職員を追加</button>
         <div class="section-title"><span>家族アカウント</span><small>${family.length}名</small></div>
         ${family.length ? `<div class="account-grid">${family.map(row).join("")}</div>` : `<div class="empty">家族アカウントはまだありません。</div>`}
-        <button class="invite-btn" type="button" onclick="showToast('家族用の招待リンクを発行しました')">${icon("plus","icon icon-sm")}ご家族を招待する</button>
+        <button class="invite-btn" type="button" onclick="openAccountModal('family')">${icon("plus","icon icon-sm")}ご家族を追加</button>
+        <div class="account-tools">
+          <button class="account-qr-btn" type="button" onclick="openQrModal()">${icon("qr","icon icon-sm")}ログイン用QRコードを表示</button>
+          <p class="account-admin-note">デモではこの画面でアカウントを追加します。本サービスでは職員追加時に招待メールが送られます。</p>
+        </div>
         ${renderWorkTemplateSection()}`;
+    }
+    function openAccountModal(type, userId = null) {
+      const actor = me();
+      if (!hasManagementAccess(actor) || !["staff","family"].includes(type)) return;
+      const person = userId ? userById(userId) : null;
+      if (person && (person.companyId !== actor.companyId || (type === "family") !== (person.role === "family"))) return;
+      state.accountFormType = type;
+      state.accountEditingId = person?.id || null;
+      renderAccountModal();
+      const modal = document.getElementById("accountModal");
+      modal.classList.add("open");
+      modal.setAttribute("aria-hidden","false");
+      setTimeout(() => document.getElementById("accountName")?.focus(), 0);
+    }
+    function renderAccountModal() {
+      const actor = me();
+      const content = document.getElementById("accountModalContent");
+      if (!content || !hasManagementAccess(actor) || !state.accountFormType) return;
+      const person = state.accountEditingId ? userById(state.accountEditingId) : null;
+      const isFamily = state.accountFormType === "family";
+      const isEdit = Boolean(person);
+      const residents = DB.residents.filter(resident => resident.companyId === actor.companyId);
+      const permissionValue = person?.role === "admin" || person?.managementAccess ? "manager" : "staff";
+      content.innerHTML = `<form class="account-form" onsubmit="event.preventDefault();saveAccount()">
+        <div class="sheet-heading"><h2 id="accountFormTitle">${isEdit ? "アカウントを編集" : isFamily ? "ご家族を追加" : "職員を追加"}</h2><button class="sheet-close" type="button" onclick="closeAccountModal()" aria-label="閉じる">×</button></div>
+        <p class="account-form-lead">${isEdit ? "現在のPINは表示しません。変更する場合だけ新しい4桁を入力してください。" : "入力した内容で、このデモにすぐログインできます。"}</p>
+        <div class="account-form-field">
+          <label for="accountName">氏名（必須）</label>
+          <input class="account-form-input" id="accountName" type="text" maxlength="30" value="${escapeHTML(person?.name || "")}" autocomplete="off" required>
+        </div>
+        ${isFamily ? `<div class="account-form-field">
+          <label for="accountResident">担当のご利用者様</label>
+          <select class="account-form-input" id="accountResident" required>
+            ${residents.map(resident => `<option value="${resident.id}" ${resident.id === person?.residentId ? "selected" : ""}>${escapeHTML(resident.name)}様</option>`).join("")}
+          </select>
+        </div>` : `<div class="account-form-field">
+          <label for="accountRoleLabel">役職ラベル</label>
+          <input class="account-form-input" id="accountRoleLabel" type="text" maxlength="30" value="${escapeHTML(person?.roleLabel || "")}" placeholder="例：介護職員／看護職員">
+        </div>
+        <div class="account-form-field">
+          <label for="accountPermission">権限</label>
+          <select class="account-form-input" id="accountPermission" ${person?.role === "admin" ? "disabled" : ""}>
+            <option value="staff" ${permissionValue === "staff" ? "selected" : ""}>職員</option>
+            <option value="manager" ${permissionValue === "manager" ? "selected" : ""}>管理者</option>
+          </select>
+        </div>`}
+        <div class="account-form-field">
+          <label for="accountPin">${isEdit ? "新しいPIN（変更時のみ）" : "4桁PIN（必須）"}</label>
+          <div class="pin-input-row">
+            <input class="account-form-input" id="accountPin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="new-password" placeholder="${isEdit ? "変更しない場合は空欄" : "数字4桁"}">
+            <button class="pin-generate-btn" type="button" onclick="generateAccountPin()">自動生成</button>
+          </div>
+          <div class="generated-pin" id="generatedPin" aria-live="polite"></div>
+        </div>
+        <div class="account-form-error" id="accountFormError" role="alert"></div>
+        <div class="account-form-actions">
+          <button class="account-form-cancel" type="button" onclick="closeAccountModal()">キャンセル</button>
+          <button class="account-form-save" type="submit">${isEdit ? "変更を保存" : "追加する"}</button>
+        </div>
+      </form>`;
+    }
+    function closeAccountModal() {
+      const modal = document.getElementById("accountModal");
+      if (!modal) return;
+      modal.classList.remove("open");
+      modal.setAttribute("aria-hidden","true");
+      state.accountFormType = null;
+      state.accountEditingId = null;
+    }
+    function generateAccountPin() {
+      const input = document.getElementById("accountPin");
+      const output = document.getElementById("generatedPin");
+      if (!input || !output) return;
+      let value;
+      if (globalThis.crypto?.getRandomValues) {
+        const random = new Uint32Array(1);
+        crypto.getRandomValues(random);
+        value = random[0] % 10000;
+      } else {
+        value = Math.floor(Math.random() * 10000);
+      }
+      const pin = String(value).padStart(4,"0");
+      input.value = pin;
+      input.type = "text";
+      output.textContent = `発行したPIN：${pin}（ログイン時に使用します）`;
+    }
+    function saveAccount() {
+      const actor = me();
+      if (!hasManagementAccess(actor) || !state.accountFormType) return;
+      const isFamily = state.accountFormType === "family";
+      const person = state.accountEditingId ? userById(state.accountEditingId) : null;
+      if (person && person.companyId !== actor.companyId) return;
+      const name = document.getElementById("accountName")?.value.trim() || "";
+      const pin = document.getElementById("accountPin")?.value.trim() || "";
+      const error = document.getElementById("accountFormError");
+      if (!name) {
+        if (error) error.textContent = "氏名を入力してください。";
+        return;
+      }
+      if ((!person && !/^\d{4}$/.test(pin)) || (person && pin && !/^\d{4}$/.test(pin))) {
+        if (error) error.textContent = "PINは数字4桁で入力してください。";
+        return;
+      }
+      const residentId = isFamily ? document.getElementById("accountResident")?.value : null;
+      const resident = isFamily ? residentById(residentId) : null;
+      if (isFamily && (!resident || resident.companyId !== actor.companyId)) {
+        if (error) error.textContent = "担当のご利用者様を選択してください。";
+        return;
+      }
+      const roleLabel = isFamily
+        ? `${resident.name}様 ご家族`
+        : document.getElementById("accountRoleLabel")?.value.trim() || "職員";
+      const permission = isFamily ? "staff" : document.getElementById("accountPermission")?.value || "staff";
+      if (person) {
+        person.name = name;
+        person.roleLabel = roleLabel;
+        if (pin) person.pin = pin;
+        if (isFamily) {
+          person.residentId = resident.id;
+        } else if (person.role !== "admin") {
+          if (permission === "manager") person.managementAccess = true;
+          else delete person.managementAccess;
+        }
+      } else {
+        const id = `user-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+        const newUser = {
+          id,
+          companyId:actor.companyId,
+          name,
+          role:isFamily ? "family" : "staff",
+          roleLabel,
+          pin
+        };
+        if (isFamily) newUser.residentId = resident.id;
+        if (!isFamily && permission === "manager") newUser.managementAccess = true;
+        DB.users.push(newUser);
+      }
+      closeAccountModal();
+      renderApp();
+      showSuccess(person ? "アカウントを更新しました" : "アカウントを追加しました");
+    }
+    function deleteAccount(userId) {
+      const actor = me();
+      const target = userById(userId);
+      if (!hasManagementAccess(actor) || !target || target.companyId !== actor.companyId) return;
+      if (target.id === actor.id) {
+        showToast("ログイン中の本人は削除できません");
+        return;
+      }
+      if (!confirm(`${target.name}さんのアカウントを削除しますか？`)) return;
+      const index = DB.users.findIndex(user => user.id === target.id);
+      if (index < 0) return;
+      DB.users.splice(index,1);
+      if (state.workRecordUserId === target.id) state.workRecordUserId = actor.id;
+      renderApp();
+      showSuccess("アカウントを削除しました");
     }
     function toggleAdminRole(userId) {
       const actor = me();
@@ -3678,6 +4086,7 @@
     .list-table tr.incident td { background: #fff0e2; }
     .list-table .nowrap { white-space: nowrap; word-break: keep-all; overflow-wrap: normal; }
     .posts-report-table { table-layout: auto; }
+    .posts-report-table .resident-cell { min-width: 22mm; white-space: nowrap; word-break: keep-all; overflow-wrap: normal; }
     .posts-report-table .body-cell { width: 100%; min-width: 66mm; overflow-wrap: anywhere; }
     .attendance-report-table .nowrap { text-align: center; }
     .shift-print-legend { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 9px; }
@@ -3762,13 +4171,13 @@
             <td class="nowrap">${escapeHTML(post.date)}</td>
             <td class="nowrap">${escapeHTML(post.time)}</td>
             <td class="nowrap ${post.type === "incident" ? "type-incident" : ""}">${post.type === "incident" ? "ヒヤリハット" : "通常"}</td>
-            <td>${escapeHTML(resident?.name || "全体")}</td>
+            <td class="resident-cell">${escapeHTML(resident?.name || "全体")}</td>
             <td class="body-cell">${printableText(post.text)}</td>
             <td class="nowrap">${escapeHTML(author?.name || "不明")}</td>
           </tr>`;
         }).join("");
         const content = posts.length ? `<table class="list-table posts-report-table">
-          <thead><tr><th class="nowrap">日付</th><th class="nowrap">時間</th><th class="nowrap">種別</th><th>対象利用者</th><th>本文</th><th class="nowrap">記入者</th></tr></thead>
+          <thead><tr><th class="nowrap">日付</th><th class="nowrap">時間</th><th class="nowrap">種別</th><th class="resident-cell">対象利用者</th><th>本文</th><th class="nowrap">記入者</th></tr></thead>
           <tbody>${rows}</tbody>
         </table>` : `<div class="empty-print">この月の申し送り記録はありません。</div>`;
         printDocument("申し送り・ヒヤリハット一覧", "申し送り・ヒヤリハット一覧", content);
@@ -3992,8 +4401,12 @@
         if (event.key === "Backspace") { event.preventDefault(); deleteLockPin(); }
         return;
       }
-      if (event.key === "Escape" && document.getElementById("attendanceModal")?.classList.contains("open")) {
-        closeAttendanceDetail();
+      if (event.key === "Escape") {
+        if (document.getElementById("qrModal")?.classList.contains("open")) closeQrModal();
+        else if (document.getElementById("accountModal")?.classList.contains("open")) closeAccountModal();
+        else if (document.getElementById("mobileMoreModal")?.classList.contains("open")) closeMoreMenu();
+        else if (document.getElementById("attendanceModal")?.classList.contains("open")) closeAttendanceDetail();
+        else return;
         return;
       }
       if (state.loginStep !== "pin" || state.userId) return;
