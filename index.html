@@ -146,6 +146,43 @@
     .button.primary { color:#fff; background:var(--brand); box-shadow:0 12px 26px rgba(23,107,93,.22); }
     .button.primary:hover { background:var(--brand-dark); }
     .button.secondary { color:var(--brand-dark); border:1px solid #abc8bf; background:#fff; }
+    .demo-access {
+      display:grid;
+      grid-template-columns:auto 1fr;
+      gap:11px;
+      max-width:570px;
+      margin-top:16px;
+      padding:13px 14px;
+      color:#41544d;
+      border:1px solid #c8dcd5;
+      border-radius:14px;
+      background:rgba(255,255,255,.84);
+      box-shadow:0 7px 20px rgba(24,62,52,.055);
+    }
+    .demo-access-icon {
+      display:grid;
+      width:36px;
+      height:36px;
+      place-items:center;
+      color:var(--brand);
+      border-radius:11px;
+      background:var(--brand-soft);
+    }
+    .demo-access-icon .icon { width:20px; height:20px; }
+    .demo-access strong { display:block; color:var(--brand-deep); font-size:12px; }
+    .demo-credentials { display:flex; flex-wrap:wrap; gap:5px 12px; margin-top:3px; font-size:11px; }
+    .demo-credentials span { display:inline-flex; align-items:center; gap:5px; }
+    .demo-credentials b { color:#52655e; font-size:9px; }
+    .demo-credentials code {
+      padding:2px 6px;
+      color:var(--brand-dark);
+      border-radius:6px;
+      background:#eaf4f0;
+      font-family:Consolas,"SFMono-Regular",monospace;
+      font-size:11px;
+      font-weight:800;
+    }
+    .demo-access small { display:block; margin-top:4px; color:#71807b; font-size:9px; line-height:1.55; }
     .hero-proof { display:flex; flex-wrap:wrap; gap:8px; margin-top:17px; }
     .hero-proof span { padding:5px 10px; color:#52645e; border:1px solid var(--line); border-radius:999px; background:rgba(255,255,255,.76); font-size:10px; font-weight:800; }
     .product-window {
@@ -281,6 +318,7 @@
       <symbol id="i-phone" viewBox="0 0 24 24"><path d="M6 3h4l2 5-3 2a16 16 0 0 0 5 5l2-3 5 2v4a3 3 0 0 1-3 3C10 21 3 14 3 6a3 3 0 0 1 3-3Z"/></symbol>
       <symbol id="i-files" viewBox="0 0 24 24"><path d="M7 3h10v4h4v14H7Z"/><path d="M17 3v4h4M3 7v12h4M10 12h8M10 16h8"/></symbol>
       <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+      <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="m11 12 8-8M16 7l2 2M14 9l2 2"/></symbol>
       <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></symbol>
       <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
     </defs>
@@ -316,6 +354,17 @@
             <a class="button primary" href="./app.html">デモを試す<svg class="icon" aria-hidden="true"><use href="#i-arrow"></use></svg></a>
             <a class="button secondary" href="#pricing">料金を見る</a>
           </div>
+          <aside class="demo-access" aria-label="デモログイン情報">
+            <span class="demo-access-icon"><svg class="icon" aria-hidden="true"><use href="#i-key"></use></svg></span>
+            <div>
+              <strong>デモログイン情報</strong>
+              <div class="demo-credentials">
+                <span><b>企業ID</b><code>himawari</code> または <code>sakura</code></span>
+                <span><b>PIN</b><code>0000</code></span>
+              </div>
+              <small>施設長・職員・ご家族、それぞれの画面をお試しいただけます。</small>
+            </div>
+          </aside>
           <div class="hero-proof"><span>初期費用0円</span><span>アカウント無制限</span><span>スマホ・タブレット対応</span></div>
         </div>
         <div class="product-window" aria-label="つなぐノートの画面イメージ">
