@@ -56,6 +56,7 @@
       outline-offset: 2px;
     }
     .hidden { display: none !important; }
+    .muted { color: var(--muted); font-size: 11px; }
     .icon {
       width: 22px;
       height: 22px;
@@ -162,6 +163,39 @@
     .step.current { color: var(--brand-dark); }
     .login h1 { margin: 0; font-size: 22px; line-height: 1.45; letter-spacing: .01em; }
     .login-lead { margin: 7px 0 19px; color: var(--muted); font-size: 14px; }
+    .login-entry-grid { display: grid; gap: 12px; margin-top: 18px; }
+    .login-entry-card {
+      display: grid;
+      min-height: 118px;
+      grid-template-columns: 52px minmax(0,1fr) 24px;
+      align-items: center;
+      gap: 13px;
+      padding: 16px;
+      color: var(--ink);
+      border: 1.5px solid #b8d2ca;
+      border-radius: 17px;
+      background: var(--brand-pale);
+      box-shadow: var(--shadow-sm);
+      text-align: left;
+      cursor: pointer;
+    }
+    .login-entry-card.family { border-color: #cec0df; background: #f7f2fa; }
+    .login-entry-card:active { transform: translateY(1px); }
+    .login-entry-icon {
+      display: grid;
+      width: 52px;
+      height: 52px;
+      place-items: center;
+      color: #fff;
+      border-radius: 15px;
+      background: var(--brand);
+    }
+    .login-entry-card.family .login-entry-icon { background: var(--family); }
+    .login-entry-copy strong { display: block; font-size: 16px; }
+    .login-entry-copy small { display: block; margin-top: 4px; color: var(--muted); font-size: 11.5px; line-height: 1.55; }
+    .login-entry-arrow { color: var(--brand-dark); }
+    .login-entry-card.family .login-entry-arrow { color: var(--family); }
+    .family-login-note { display: flex; gap: 7px; margin-top: 15px; padding: 10px 11px; color: #604a78; border: 1px solid #ddd0e9; border-radius: 11px; background: #f8f4fb; font-size: 10.5px; line-height: 1.6; }
     .field-label { display: block; margin-bottom: 7px; font-weight: 700; }
     .text-input {
       width: 100%;
@@ -583,6 +617,8 @@
     }
     .feature-card.posts .feature-icon { color: #895020; background: #fff0e1; }
     .feature-card.renraku .feature-icon { color: #3a5f88; background: #ebf1f8; }
+    .feature-card.health .feature-icon { color: #9b3d35; background: #fbecea; }
+    .feature-card.shift .feature-icon { color: #3c5c88; background: #eaf0f8; }
     .feature-card.admin .feature-icon { color: var(--family); background: var(--family-soft); }
     .feature-card.export .feature-icon { color: #7b5520; background: #f8eedc; }
     .feature-card strong { display: block; font-size: 15px; }
@@ -1003,6 +1039,130 @@
     .reply-form { display: flex; gap: 8px; margin: 0 13px 14px; }
     .reply-input { min-width: 0; min-height: 47px; flex: 1; padding: 8px 12px; border: 1.5px solid var(--line-strong); border-radius: 12px; background: #fff; font-size: 15px; }
     .reply-submit { min-width: 72px; min-height: 47px; color: #fff; border: 0; border-radius: 12px; background: var(--brand); font-size: 12px; font-weight: 800; cursor: pointer; }
+    .note-health-summary {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin: 9px 13px 0;
+      padding: 9px 11px;
+      color: #335c52;
+      border: 1px solid #c9ddd7;
+      border-radius: 10px;
+      background: #f0f7f4;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .note-health-summary.warning { color: #8f3d09; border-color: #edc19f; background: var(--incident-soft); }
+
+    /* Health records */
+    .health-resident-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; margin-bottom: 15px; }
+    .health-resident-card {
+      display: grid;
+      min-height: 112px;
+      grid-template-columns: 40px minmax(0,1fr);
+      align-items: center;
+      gap: 9px;
+      padding: 12px;
+      color: var(--ink);
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      background: #fff;
+      box-shadow: var(--shadow-sm);
+      text-align: left;
+      cursor: pointer;
+    }
+    .health-resident-card.active { border: 2px solid var(--brand); background: var(--brand-pale); }
+    .health-resident-card .avatar { width: 40px; height: 40px; margin: 0; font-size: 12px; }
+    .health-resident-card strong { display: block; font-size: 13px; }
+    .health-resident-card small { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; line-height: 1.45; }
+    .health-latest { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 5px; padding-top: 7px; border-top: 1px solid #e9eeec; font-size: 10px; font-weight: 800; }
+    .health-latest .warning { color: var(--incident); }
+    .health-detail-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 15px 0 10px; }
+    .health-detail-head h2 { margin: 0; font-size: 17px; }
+    .health-add-btn {
+      display: inline-flex;
+      min-height: 44px;
+      align-items: center;
+      gap: 5px;
+      padding: 0 12px;
+      color: #fff;
+      border: 0;
+      border-radius: 11px;
+      background: var(--brand);
+      font-size: 11px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .health-form { margin-bottom: 14px; padding: 15px; border: 1.5px solid #b8d2ca; background: #fbfdfc; }
+    .health-form h2 { margin: 0 0 12px; font-size: 17px; }
+    .health-form-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 11px; }
+    .health-field { min-width: 0; }
+    .health-field.full { grid-column: 1 / -1; }
+    .health-field label { display: block; margin: 0 2px 5px; color: var(--muted); font-size: 10.5px; font-weight: 800; }
+    .health-input, .health-select, .health-textarea {
+      width: 100%;
+      min-height: 46px;
+      padding: 9px 10px;
+      color: var(--ink);
+      border: 1.5px solid var(--line-strong);
+      border-radius: 10px;
+      background: #fff;
+      font-size: 15px;
+    }
+    .health-textarea { min-height: 92px; resize: vertical; line-height: 1.6; }
+    .health-form-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 13px; }
+    .health-form-actions button { min-height: 48px; border-radius: 11px; font-size: 12px; font-weight: 800; cursor: pointer; }
+    .health-cancel { color: var(--brand-dark); border: 1.5px solid var(--brand); background: #fff; }
+    .health-save { color: #fff; border: 0; background: var(--brand); }
+    .health-record-grid { display: grid; gap: 10px; }
+    .health-record-card { padding: 14px; }
+    .health-record-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+    .health-record-head strong { font-size: 13px; }
+    .health-record-head small { display: block; margin-top: 2px; color: var(--muted); font-size: 10px; }
+    .health-edit-btn { min-height: 44px; padding: 0 11px; color: var(--brand-dark); border: 1px solid #b5cec7; border-radius: 10px; background: var(--brand-pale); font-size: 10.5px; font-weight: 800; cursor: pointer; }
+    .vital-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 7px; }
+    .vital-item { min-width: 0; padding: 9px 4px; border: 1px solid var(--line); border-radius: 10px; background: #f8faf9; text-align: center; }
+    .vital-item span { display: block; color: var(--muted); font-size: 9.5px; }
+    .vital-item strong { display: block; color: var(--brand-dark); font-size: 14px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .vital-item.warning { border-color: #e7ad84; background: var(--incident-soft); }
+    .vital-item.warning strong { color: var(--incident); }
+    .meal-health-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 7px; margin-top: 7px; }
+    .meal-health-row span { padding: 8px 5px; border-radius: 9px; background: #f0f5f3; color: #435952; font-size: 10px; font-weight: 700; text-align: center; }
+    .health-memo { margin: 9px 0 0; padding-top: 9px; border-top: 1px solid #e7ecea; font-size: 13px; line-height: 1.65; white-space: pre-wrap; }
+
+    /* Shift calendar */
+    .shift-toolbar { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+    .shift-month-field label { display: block; margin: 0 2px 5px; color: var(--muted); font-size: 10.5px; font-weight: 800; }
+    .shift-month-input { min-height: 46px; padding: 7px 10px; color: var(--ink); border: 1.5px solid var(--line-strong); border-radius: 10px; background: #fff; font-size: 14px; font-weight: 700; }
+    .shift-print-btn { display: inline-flex; min-height: 46px; align-items: center; gap: 6px; padding: 0 13px; color: var(--brand-dark); border: 1.5px solid var(--brand); border-radius: 11px; background: #fff; font-size: 11px; font-weight: 800; cursor: pointer; }
+    .shift-legend { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    .shift-legend span { display: inline-flex; min-height: 28px; align-items: center; padding: 3px 8px; border: 1px solid; border-radius: 99px; font-size: 9.5px; font-weight: 800; }
+    .shift-editor { margin-bottom: 11px; padding: 13px; border: 1.5px solid #b8d2ca; border-radius: 14px; background: var(--brand-pale); }
+    .shift-editor-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 9px; }
+    .shift-editor-head strong { display: block; font-size: 13px; }
+    .shift-editor-head small { color: var(--muted); font-size: 10px; }
+    .shift-editor-close { min-width: 44px; min-height: 44px; color: var(--muted); border: 1px solid var(--line); border-radius: 9px; background: #fff; font-size: 11px; font-weight: 800; cursor: pointer; }
+    .shift-choice-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 6px; }
+    .shift-choice { min-width: 0; min-height: 48px; padding: 5px 2px; border: 1.5px solid; border-radius: 9px; font-size: 10px; font-weight: 800; cursor: pointer; }
+    .shift-scroll { width: 100%; overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; background: #fff; box-shadow: var(--shadow-sm); scrollbar-color: #a7bdb6 transparent; }
+    .shift-table { min-width: max-content; border-collapse: separate; border-spacing: 0; font-size: 10px; }
+    .shift-table th, .shift-table td { width: 56px; min-width: 56px; height: 52px; padding: 4px; border-right: 1px solid #e2e8e5; border-bottom: 1px solid #e2e8e5; text-align: center; }
+    .shift-table th { position: sticky; top: 0; z-index: 2; color: #43534e; background: #f3f7f5; font-size: 9px; }
+    .shift-table .staff-col { position: sticky; left: 0; z-index: 3; width: 104px; min-width: 104px; color: var(--ink); background: #fff; text-align: left; }
+    .shift-table thead .staff-col { z-index: 4; background: #eaf2ef; }
+    .shift-table tr.self-row .staff-col { color: var(--brand-dark); background: #e7f3ef; box-shadow: inset 4px 0 var(--brand); }
+    .shift-table tr.self-row td { background-color: #fbfdfc; }
+    .shift-table .weekend { color: #9b3d35; background: #fff6f5; }
+    .shift-cell { display: grid; width: 100%; min-height: 44px; place-items: center; padding: 3px 2px; border: 1px solid transparent; border-radius: 8px; font-size: 10px; font-weight: 800; line-height: 1.25; white-space: nowrap; }
+    button.shift-cell { cursor: pointer; }
+    button.shift-cell:hover { outline: 2px solid rgba(23,107,93,.25); }
+    .shift-early { color: #24546d; border-color: #a9cad9 !important; background: #e8f4f9 !important; }
+    .shift-day { color: #176052; border-color: #acd0c6 !important; background: #e5f3ef !important; }
+    .shift-late { color: #805016; border-color: #e1c18f !important; background: #fff3df !important; }
+    .shift-night { color: #5a4480; border-color: #c8b6df !important; background: #f1ebf8 !important; }
+    .shift-off { color: #59645f; border-color: #cbd2cf !important; background: #eef1f0 !important; }
+    .shift-none { color: #9aa5a1; background: #fff; }
+    .shift-help { margin: 8px 2px 0; color: var(--muted); font-size: 10.5px; }
 
     /* Admin */
     .info-box { display: flex; gap: 9px; margin-bottom: 14px; padding: 12px 13px; color: #445b54; border: 1px solid #d4e2dd; border-radius: 14px; background: #f0f7f4; font-size: 11.5px; }
@@ -1216,6 +1376,7 @@
       width: 100%;
       max-width: 480px;
       min-height: 66px;
+      overflow-x: auto;
       margin: 0 auto;
       padding: 5px 4px calc(5px + env(safe-area-inset-bottom));
       border-top: 1px solid var(--line);
@@ -1226,9 +1387,9 @@
     .nav-item {
       position: relative;
       display: flex;
-      min-width: 0;
+      min-width: 58px;
       min-height: 56px;
-      flex: 1;
+      flex: 1 0 58px;
       flex-direction: column;
       align-items: center;
       justify-content: center;
@@ -1444,9 +1605,12 @@
         border-right: 1px solid var(--line);
         background: #f4f8f6;
         box-shadow: none;
+        overflow-x: visible;
+        overflow-y: auto;
       }
       .nav-item {
         width: 100%;
+        min-width: 0;
         min-height: 54px;
         flex: 0 0 auto;
         flex-direction: row;
@@ -1489,6 +1653,10 @@
       .template-quick-buttons { grid-template-columns: repeat(4,minmax(0,1fr)); }
       .work-template-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
       .monthly-record-times { grid-template-columns: repeat(4,1fr); }
+      .health-resident-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
+      .health-form-grid { grid-template-columns: repeat(4,minmax(0,1fr)); }
+      .health-field.full { grid-column: 1 / -1; }
+      .health-record-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
     }
     @media (min-width: 1040px) {
       body { padding: 24px; }
@@ -1571,6 +1739,9 @@
         <symbol id="i-export" viewBox="0 0 24 24"><path d="M5 3h10l4 4v14H5Z"/><path d="M15 3v5h5M8 13h8M8 17h8"/></symbol>
         <symbol id="i-print" viewBox="0 0 24 24"><path d="M7 9V3h10v6M7 18H4V9h16v9h-3"/><path d="M7 14h10v7H7ZM17 12h.01"/></symbol>
         <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 6h7l2 2h9v11H3Z"/></symbol>
+        <symbol id="i-family" viewBox="0 0 24 24"><path d="m3 11 9-8 9 8"/><path d="M5 9.5V21h14V9.5"/><circle cx="12" cy="12" r="2.3"/><path d="M8.5 19v-1a3.5 3.5 0 0 1 7 0v1"/></symbol>
+        <symbol id="i-health" viewBox="0 0 24 24"><path d="M12 21s-8-4.7-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 6.3-8 11-8 11Z"/><path d="M7.5 13h2l1.3-3 2.2 6 1.3-3h2.2"/></symbol>
+        <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18M7 14h2M12 14h2M17 14h.01M7 18h2M12 18h2"/></symbol>
         <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 20 6v5c0 5-3.3 8.4-8 10-4.7-1.6-8-5-8-10V6Z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></symbol>
         <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 15v2"/></symbol>
       </defs>
@@ -1695,6 +1866,57 @@
       DEFAULT_WORK_TEMPLATES.map(template => ({ ...template, companyId:company.id }))
     );
 
+    const HEALTH_SAMPLE_DATES = ["2026-07-25T08:30","2026-07-24T14:00","2026-07-23T09:10"];
+    const HEALTH_MEAL_LEVELS = ["完食","半分","少量","未摂取"];
+    DB.healthRecords = DB.residents.flatMap((resident, residentIndex) => {
+      const recorders = DB.users.filter(user => user.companyId === resident.companyId && user.role !== "family");
+      return HEALTH_SAMPLE_DATES.map((recordedAt, recordIndex) => {
+        const hasFever = recordIndex === 0 && residentIndex % 3 === 1;
+        const staple = HEALTH_MEAL_LEVELS[(residentIndex + recordIndex) % 3];
+        const side = HEALTH_MEAL_LEVELS[(residentIndex + recordIndex + 1) % 3];
+        return {
+          id:`health-${resident.id}-${recordIndex + 1}`,
+          companyId:resident.companyId,
+          residentId:resident.id,
+          recordedAt,
+          temperature:hasFever ? 37.7 : Number((36.4 + ((residentIndex + recordIndex) % 5) * .1).toFixed(1)),
+          systolic:112 + ((residentIndex * 7 + recordIndex * 4) % 24),
+          diastolic:66 + ((residentIndex * 5 + recordIndex * 3) % 17),
+          pulse:68 + ((residentIndex * 6 + recordIndex * 5) % 22),
+          staple,
+          side,
+          water:320 + ((residentIndex + recordIndex) % 5) * 80,
+          memo:hasFever ? "微熱が見られたため、水分補給と安静を促し経過観察しています。" : recordIndex === 0 ? "表情は穏やかで、普段と変わりなく過ごされています。" : "体調に大きな変化はありません。",
+          recorderId:recorders[(residentIndex + recordIndex) % recorders.length]?.id || null
+        };
+      });
+    });
+
+    const SHIFT_TYPES = [
+      { id:"early", label:"早出", className:"shift-early" },
+      { id:"day", label:"日勤", className:"shift-day" },
+      { id:"late", label:"遅出", className:"shift-late" },
+      { id:"night", label:"夜勤", className:"shift-night" },
+      { id:"off", label:"休み", className:"shift-off" }
+    ];
+    const SHIFT_SAMPLE_MONTH = todayKey().slice(0,7);
+    DB.shifts = DB.companies.flatMap((company, companyIndex) => {
+      const staff = DB.users.filter(user => user.companyId === company.id && user.role !== "family");
+      return staff.flatMap((user, userIndex) =>
+        Array.from({ length:14 }, (_, index) => {
+          const day = index + 1;
+          const sequence = ["day","early","day","late","off","day","night","off"];
+          return {
+            id:`shift-${company.id}-${user.id}-${day}`,
+            companyId:company.id,
+            userId:user.id,
+            date:`${SHIFT_SAMPLE_MONTH}-${String(day).padStart(2,"0")}`,
+            type:sequence[(day + userIndex * 2 + companyIndex) % sequence.length]
+          };
+        })
+      );
+    });
+
     /* Past 12 months of sample attendance records for the employee detail view */
     DB.users.filter(user => user.role !== "family").forEach((user, userIndex) => {
       Array.from({ length:12 }, (_, monthOffset) => monthOffset).forEach(monthOffset => {
@@ -1728,7 +1950,8 @@
     const state = {
       userId: null,
       view: "home",
-      loginStep: "company",
+      loginStep: "audience",
+      loginAudience: null,
       loginCompanyId: null,
       loginUserId: null,
       pin: "",
@@ -1740,6 +1963,10 @@
       postImportant: false,
       postFilter: "all",
       renrakuTab: null,
+      healthResidentId: null,
+      healthEditingId: null,
+      shiftMonth: todayKey().slice(0,7),
+      shiftEditing: null,
       viewHistory: [],
       attendanceUserId: null,
       attendanceMonth: todayKey().slice(0,7),
@@ -1787,13 +2014,21 @@
       const u = me();
       if (!u) return [];
       if (u.role === "family") return ["renraku"];
-      return hasManagementAccess(u) ? ["home","kintai","workrecords","posts","renraku","admin","export"] : ["home","kintai","workrecords","posts","renraku"];
+      return hasManagementAccess(u)
+        ? ["home","kintai","workrecords","posts","renraku","health","shift","admin","export"]
+        : ["home","kintai","workrecords","posts","renraku","health","shift"];
     };
     const INACTIVITY_TIMEOUT_MS = 300_000; // 無操作300秒（5分）で自動ロック。本番運用も300秒想定。
     let inactivityTimer = null;
     /* =========================
        Login flow
        ========================= */
+    function loginUsers(companyId, audience) {
+      return DB.users.filter(user =>
+        user.companyId === companyId &&
+        (audience === "family" ? user.role === "family" : audience === "staff" && user.role !== "family")
+      );
+    }
     function renderLogin() {
       const root = document.getElementById("loginRoot");
       document.getElementById("shell").classList.add("hidden");
@@ -1806,13 +2041,31 @@
         { id:"pin", label:"PIN" }
       ];
       const stepIndex = steps.findIndex(s => s.id === state.loginStep);
-      const stepper = steps.map((s,i) => `<div class="step ${i < stepIndex ? "done" : ""} ${i === stepIndex ? "current" : ""}">${i+1}. ${s.label}</div>`).join("");
+      const stepper = state.loginStep === "audience" ? "" : `<div class="stepper" aria-label="ログイン手順">${steps.map((s,i) => `<div class="step ${i < stepIndex ? "done" : ""} ${i === stepIndex ? "current" : ""}">${i+1}. ${s.label}</div>`).join("")}</div>`;
+      const isFamilyLogin = state.loginAudience === "family";
 
       let body = "";
-      if (state.loginStep === "company") {
+      if (state.loginStep === "audience") {
         body = `
-          <h1>施設を確認します</h1>
-          <p class="login-lead">勤務先から案内された企業IDを入力してください。</p>
+          <h1>ログインする方を選択</h1>
+          <p class="login-lead">ご利用になる方に合った入口を選んでください。</p>
+          <div class="login-entry-grid">
+            <button class="login-entry-card" type="button" onclick="chooseLoginAudience('staff')">
+              <span class="login-entry-icon">${icon("users","icon icon-lg")}</span>
+              <span class="login-entry-copy"><strong>職員の方はこちら</strong><small>施設長・管理者・職員用のログイン入口です</small></span>
+              <span class="login-entry-arrow">${icon("arrow","icon")}</span>
+            </button>
+            <button class="login-entry-card family" type="button" onclick="chooseLoginAudience('family')">
+              <span class="login-entry-icon">${icon("family","icon icon-lg")}</span>
+              <span class="login-entry-copy"><strong>ご家族の方はこちら</strong><small>大切なご家族の連絡帳をご覧いただけます</small></span>
+              <span class="login-entry-arrow">${icon("arrow","icon")}</span>
+            </button>
+          </div>`;
+      } else if (state.loginStep === "company") {
+        body = `
+          <button class="back-btn" type="button" onclick="backToAudience()">${icon("back","icon icon-sm")}入口選択に戻る</button>
+          <h1>${isFamilyLogin ? "ご利用施設を確認します" : "勤務先を確認します"}</h1>
+          <p class="login-lead">${isFamilyLogin ? "施設から案内された企業IDを入力してください。" : "勤務先から案内された企業IDを入力してください。"}</p>
           <label class="field-label" for="companyCode">企業ID</label>
           <input class="text-input" id="companyCode" type="text" inputmode="latin" autocomplete="off" autocapitalize="none"
             placeholder="例：himawari" aria-describedby="companyMessage" oninput="checkCompany(this.value)">
@@ -1823,25 +2076,25 @@
           </button>`;
       } else if (state.loginStep === "user") {
         const c = companyById(state.loginCompanyId);
-        const users = DB.users.filter(u => u.companyId === c.id);
+        const users = loginUsers(c.id,state.loginAudience);
         body = `
           <button class="back-btn" type="button" onclick="backToCompany()">${icon("back","icon icon-sm")}企業IDに戻る</button>
-          <h1>ログインする方を選択</h1>
-          <p class="login-lead">${escapeHTML(c.name)}に所属する方を表示しています。</p>
+          <h1>${isFamilyLogin ? "ご家族のお名前を選択" : "職員のお名前を選択"}</h1>
+          <p class="login-lead">${isFamilyLogin ? `${escapeHTML(c.name)}をご利用中のご家族を表示しています。` : `${escapeHTML(c.name)}に所属する職員を表示しています。`}</p>
           <div class="user-grid">
             ${users.map(u => `
               <button class="user-option" type="button" onclick="selectLoginUser('${u.id}')">
                 <span class="avatar">${escapeHTML(initial(u.name))}</span>
                 <strong>${escapeHTML(u.name)}</strong>
                 <span class="mini-role ${u.role === "family" ? "family" : ""}">${escapeHTML(u.roleLabel)}</span>
-              </button>`).join("")}
+              </button>`).join("") || `<div class="empty">${isFamilyLogin ? "ご家族アカウント" : "職員アカウント"}がありません。</div>`}
           </div>`;
       } else {
         const u = userById(state.loginUserId);
         body = `
           <button class="back-btn" type="button" onclick="backToUsers()">${icon("back","icon icon-sm")}お名前の選択に戻る</button>
-          <h1>4桁のPINを入力</h1>
-          <p class="login-lead">周囲から見られないように入力してください。</p>
+          <h1>${isFamilyLogin ? "確認用PINを入力" : "4桁のPINを入力"}</h1>
+          <p class="login-lead">${isFamilyLogin ? "連絡帳を安全に開くため、4桁のPINを入力してください。" : "周囲から見られないように入力してください。"}</p>
           <div class="pin-person">
             <span class="avatar">${escapeHTML(initial(u.name))}</span>
             <span><strong>${escapeHTML(u.name)}</strong><small>${escapeHTML(u.roleLabel)}</small></span>
@@ -1859,6 +2112,9 @@
             <button class="key delete" type="button" onclick="deletePin()" aria-label="1桁消す">${icon("delete","icon")}</button>
           </div>`;
       }
+      const familyNote = isFamilyLogin && state.loginStep !== "audience"
+        ? `<div class="family-login-note">${icon("info","icon icon-sm")}<span>本サービスでは、ご家族はメールアドレスとパスワードでログインします。現在はデモ用のPIN画面です。</span></div>`
+        : "";
 
       root.innerHTML = `
         <section class="login">
@@ -1867,8 +2123,9 @@
             <span><strong>つなぐノート</strong><small>介護の毎日を、やさしくつなぐ</small></span>
           </div>
           <div class="login-panel">
-            <div class="stepper" aria-label="ログイン手順">${stepper}</div>
+            ${stepper}
             ${body}
+            ${familyNote}
           </div>
           <div class="demo-hint">デモ用: 企業ID himawari / sakura / kanekiyo、PIN 0000</div>
           <div class="security-note">${icon("shield","icon icon-sm")}<span>記録は暗号化され、施設ごとに分離して安全に保管されます（デモ表示）</span></div>
@@ -1876,6 +2133,25 @@
       if (state.loginStep === "company") setTimeout(() => document.getElementById("companyCode")?.focus(), 0);
     }
 
+    function chooseLoginAudience(audience) {
+      if (!["staff","family"].includes(audience)) return;
+      state.loginAudience = audience;
+      state.loginStep = "company";
+      state.loginCompanyId = null;
+      state.loginUserId = null;
+      state.pin = "";
+      state.pinError = "";
+      renderLogin();
+    }
+    function backToAudience() {
+      state.loginStep = "audience";
+      state.loginAudience = null;
+      state.loginCompanyId = null;
+      state.loginUserId = null;
+      state.pin = "";
+      state.pinError = "";
+      renderLogin();
+    }
     function checkCompany(raw) {
       const value = raw.trim().toLowerCase();
       const company = DB.companies.find(c => c.code === value);
@@ -1893,7 +2169,7 @@
       }
     }
     function goUserStep() {
-      if (!state.loginCompanyId) return;
+      if (!state.loginCompanyId || !["staff","family"].includes(state.loginAudience)) return;
       state.loginStep = "user";
       renderLogin();
     }
@@ -1906,7 +2182,8 @@
     }
     function selectLoginUser(id) {
       const u = userById(id);
-      if (!u || u.companyId !== state.loginCompanyId) return;
+      const matchesAudience = state.loginAudience === "family" ? u?.role === "family" : u?.role !== "family";
+      if (!u || u.companyId !== state.loginCompanyId || !matchesAudience) return;
       state.loginUserId = id;
       state.loginStep = "pin";
       state.pin = "";
@@ -1934,7 +2211,8 @@
     }
     function verifyPin() {
       const u = userById(state.loginUserId);
-      if (u && state.pin === u.pin) {
+      const audienceMatches = state.loginAudience === "family" ? u?.role === "family" : state.loginAudience === "staff" && u?.role !== "family";
+      if (u && audienceMatches && state.pin === u.pin) {
         state.userId = u.id;
         state.view = u.role === "family" ? "renraku" : "home";
         state.viewHistory = [];
@@ -1943,6 +2221,10 @@
         state.pinError = "";
         state.postResidentId = null;
         state.renrakuTab = null;
+        state.healthResidentId = DB.residents.find(r => r.companyId === u.companyId)?.id || null;
+        state.healthEditingId = null;
+        state.shiftMonth = todayKey().slice(0,7);
+        state.shiftEditing = null;
         state.workRecordUserId = u.id;
         state.workRecordMonth = todayKey().slice(0,7);
         state.workRecordEditingId = null;
@@ -2060,7 +2342,8 @@
       state.locked = false;
       state.lockPin = "";
       state.lockError = "";
-      state.loginStep = "company";
+      state.loginStep = "audience";
+      state.loginAudience = null;
       state.loginCompanyId = null;
       state.loginUserId = null;
       state.pin = "";
@@ -2082,7 +2365,9 @@
         { id:"kintai", icon:"clock", label:"出退勤" },
         { id:"workrecords", icon:"export", label:"勤務記録" },
         { id:"posts", icon:"note", label:"申し送り" },
-        { id:"renraku", icon:"book", label:"連絡帳" }
+        { id:"renraku", icon:"book", label:"連絡帳" },
+        { id:"health", icon:"health", label:"体調管理" },
+        { id:"shift", icon:"calendar", label:"シフト表" }
       ];
       if (hasManagementAccess(u)) {
         items.push({ id:"admin", icon:"admin", label:"管理" });
@@ -2133,7 +2418,7 @@
       document.getElementById("lockRoot").classList.add("hidden");
       document.getElementById("shell").classList.remove("hidden");
       document.getElementById("headerCompany").textContent = `つなぐノート｜${myCompany().name}｜${u.name}`;
-      const renderers = { home:renderHome, kintai:renderKintai, workrecords:renderWorkRecords, posts:renderPosts, renraku:renderRenraku, admin:renderAdmin, export:renderExport };
+      const renderers = { home:renderHome, kintai:renderKintai, workrecords:renderWorkRecords, posts:renderPosts, renraku:renderRenraku, health:renderHealth, shift:renderShift, admin:renderAdmin, export:renderExport };
       if (!allowedViews().includes(state.view)) {
         state.view = defaultView(u);
         replaceRouteHash(state.view);
@@ -2176,7 +2461,9 @@
         { id:"kintai", icon:"clock", title:"出退勤", desc:"出勤・退勤をかんたん打刻", cls:"" },
         { id:"workrecords", icon:"export", title:"勤務記録", desc:canManage ? "全職員の勤務実績を確認・編集" : "自分の勤務実績を月ごとに確認", cls:"" },
         { id:"posts", icon:"note", title:"申し送り", desc:"重要事項とヒヤリハットを共有", cls:"posts", badge:unread },
-        { id:"renraku", icon:"book", title:"連絡帳", desc:"ご家族へ日々の様子をお届け", cls:"renraku" }
+        { id:"renraku", icon:"book", title:"連絡帳", desc:"ご家族へ日々の様子をお届け", cls:"renraku" },
+        { id:"health", icon:"health", title:"体調管理", desc:"バイタル・食事・水分量を記録", cls:"health" },
+        { id:"shift", icon:"calendar", title:"シフト表", desc:hasManagementAccess(u) ? "月間シフトを確認・編集" : "月間シフトを確認", cls:"shift" }
       ];
       if (hasManagementAccess(u)) cards.push({ id:"admin", icon:"admin", title:"管理", desc:"職員・家族アカウントを管理", cls:"admin" });
       if (hasManagementAccess(u)) cards.push({ id:"export", icon:"export", title:"帳票出力", desc:"月ごとの記録を印刷・保存", cls:"export" });
@@ -2773,6 +3060,290 @@
     }
 
     /* =========================
+       Health records
+       ========================= */
+    const healthRecordsForResident = residentId => DB.healthRecords
+      .filter(record => record.companyId === me()?.companyId && record.residentId === residentId)
+      .sort((a,b) => String(b.recordedAt).localeCompare(String(a.recordedAt)));
+    const latestHealthRecord = residentId => healthRecordsForResident(residentId)[0] || null;
+    const temperatureWarning = record => Number(record?.temperature) >= 37.5;
+    const bloodPressureWarning = record => Number(record?.systolic) >= 160 || Number(record?.systolic) <= 90 || Number(record?.diastolic) >= 100;
+    const pulseWarning = record => Number(record?.pulse) >= 100 || Number(record?.pulse) <= 50;
+    function healthDateTimeLabel(value) {
+      const [date,time = ""] = String(value || "").split("T");
+      const parts = date.split("-");
+      return parts.length === 3 ? `${Number(parts[1])}月${Number(parts[2])}日 ${time}` : value;
+    }
+    function currentDateTimeInput() {
+      const now = new Date();
+      const local = new Date(now.getTime() - now.getTimezoneOffset() * 60_000);
+      return local.toISOString().slice(0,16);
+    }
+    function mealHealthLabel(record) {
+      if (!record) return "";
+      return record.staple === record.side ? `食事${record.staple}` : `主食${record.staple}・副食${record.side}`;
+    }
+    function setHealthResident(residentId) {
+      const resident = residentById(residentId);
+      if (!resident || resident.companyId !== me()?.companyId || me()?.role === "family") return;
+      state.healthResidentId = residentId;
+      state.healthEditingId = null;
+      renderApp();
+    }
+    function startHealthCreate() {
+      if (me()?.role === "family" || !residentById(state.healthResidentId)) return;
+      state.healthEditingId = "new";
+      renderApp();
+      requestAnimationFrame(() => document.getElementById("healthForm")?.scrollIntoView({ behavior:"smooth", block:"start" }));
+    }
+    function startHealthEdit(recordId) {
+      const record = DB.healthRecords.find(item => item.id === recordId);
+      if (!record || record.companyId !== me()?.companyId || record.residentId !== state.healthResidentId || me()?.role === "family") return;
+      state.healthEditingId = recordId;
+      renderApp();
+      requestAnimationFrame(() => document.getElementById("healthForm")?.scrollIntoView({ behavior:"smooth", block:"start" }));
+    }
+    function cancelHealthEdit() {
+      state.healthEditingId = null;
+      renderApp();
+    }
+    function healthMealOptions(selected) {
+      return HEALTH_MEAL_LEVELS.map(value => `<option value="${value}" ${selected === value ? "selected" : ""}>${value}</option>`).join("");
+    }
+    function renderHealthForm() {
+      if (!state.healthEditingId) return "";
+      const existing = state.healthEditingId === "new" ? null : DB.healthRecords.find(record => record.id === state.healthEditingId);
+      const value = (key, fallback = "") => existing?.[key] ?? fallback;
+      return `<section class="card health-form" id="healthForm" aria-labelledby="healthFormTitle">
+        <h2 id="healthFormTitle">${existing ? "体調記録を編集" : "新しい体調記録"}</h2>
+        <div class="health-form-grid">
+          <div class="health-field full"><label for="healthRecordedAt">記録日時</label><input class="health-input" id="healthRecordedAt" type="datetime-local" value="${escapeHTML(value("recordedAt",currentDateTimeInput()))}"></div>
+          <div class="health-field"><label for="healthTemperature">体温（℃）</label><input class="health-input" id="healthTemperature" type="number" inputmode="decimal" min="34" max="42" step="0.1" value="${escapeHTML(value("temperature","36.5"))}"></div>
+          <div class="health-field"><label for="healthSystolic">血圧・上</label><input class="health-input" id="healthSystolic" type="number" inputmode="numeric" min="60" max="240" value="${escapeHTML(value("systolic","120"))}"></div>
+          <div class="health-field"><label for="healthDiastolic">血圧・下</label><input class="health-input" id="healthDiastolic" type="number" inputmode="numeric" min="30" max="150" value="${escapeHTML(value("diastolic","70"))}"></div>
+          <div class="health-field"><label for="healthPulse">脈拍（回/分）</label><input class="health-input" id="healthPulse" type="number" inputmode="numeric" min="30" max="200" value="${escapeHTML(value("pulse","72"))}"></div>
+          <div class="health-field"><label for="healthStaple">主食</label><select class="health-select" id="healthStaple">${healthMealOptions(value("staple","完食"))}</select></div>
+          <div class="health-field"><label for="healthSide">副食</label><select class="health-select" id="healthSide">${healthMealOptions(value("side","完食"))}</select></div>
+          <div class="health-field"><label for="healthWater">水分量（ml）</label><input class="health-input" id="healthWater" type="number" inputmode="numeric" min="0" max="5000" step="10" value="${escapeHTML(value("water","400"))}"></div>
+          <div class="health-field full"><label for="healthMemo">メモ</label><textarea class="health-textarea" id="healthMemo" maxlength="500" placeholder="体調や対応内容を入力してください">${escapeHTML(value("memo",""))}</textarea></div>
+        </div>
+        <div class="health-form-actions">
+          <button class="health-cancel" type="button" onclick="cancelHealthEdit()">キャンセル</button>
+          <button class="health-save" type="button" onclick="saveHealthRecord()">保存する</button>
+        </div>
+      </section>`;
+    }
+    function renderHealthRecord(record) {
+      const recorder = userById(record.recorderId);
+      const hasWarning = temperatureWarning(record) || bloodPressureWarning(record) || pulseWarning(record);
+      return `<article class="card health-record-card ${hasWarning ? "has-warning" : ""}">
+        <div class="health-record-head">
+          <span><strong>${escapeHTML(healthDateTimeLabel(record.recordedAt))}</strong><small>記録：${escapeHTML(recorder?.name || "職員")}</small></span>
+          <button class="health-edit-btn" type="button" onclick="startHealthEdit('${record.id}')">編集</button>
+        </div>
+        <div class="vital-grid">
+          <div class="vital-item ${temperatureWarning(record) ? "warning" : ""}"><span>体温</span><strong>${Number(record.temperature).toFixed(1)}℃</strong></div>
+          <div class="vital-item ${bloodPressureWarning(record) ? "warning" : ""}"><span>血圧</span><strong>${record.systolic}/${record.diastolic}</strong></div>
+          <div class="vital-item ${pulseWarning(record) ? "warning" : ""}"><span>脈拍</span><strong>${record.pulse}</strong></div>
+        </div>
+        <div class="meal-health-row">
+          <span>主食 ${escapeHTML(record.staple)}</span>
+          <span>副食 ${escapeHTML(record.side)}</span>
+          <span>水分 ${Number(record.water)}ml</span>
+        </div>
+        ${record.memo ? `<p class="health-memo">${escapeHTML(record.memo)}</p>` : ""}
+      </article>`;
+    }
+    function renderHealth() {
+      const u = me();
+      if (!u || u.role === "family") return "";
+      const residents = DB.residents.filter(resident => resident.companyId === u.companyId);
+      if (!residents.some(resident => resident.id === state.healthResidentId)) state.healthResidentId = residents[0]?.id || null;
+      const selected = residentById(state.healthResidentId);
+      const records = selected ? healthRecordsForResident(selected.id) : [];
+      return `
+        ${pageHead("HEALTH RECORDS","体調管理","バイタル・食事量・水分量を、利用者様ごとに記録します。","health")}
+        <div class="info-box">${icon("info","icon icon-sm")}<span>体温37.5℃以上、血圧・脈拍が基準を超えた記録は警告色で表示します。</span></div>
+        <div class="section-title"><span>利用者様を選択</span><small>${residents.length}名</small></div>
+        <div class="health-resident-grid">
+          ${residents.map(resident => {
+            const latest = latestHealthRecord(resident.id);
+            return `<button class="health-resident-card ${state.healthResidentId === resident.id ? "active" : ""}" type="button" onclick="setHealthResident('${resident.id}')" aria-pressed="${state.healthResidentId === resident.id}">
+              <span class="avatar">${escapeHTML(initial(resident.name))}</span>
+              <span><strong>${escapeHTML(resident.name)}様</strong><small>${escapeHTML(resident.care)}</small></span>
+              <span class="health-latest">${latest ? `<span class="${temperatureWarning(latest) ? "warning" : ""}">${Number(latest.temperature).toFixed(1)}℃</span><span>血圧 ${latest.systolic}/${latest.diastolic}</span>` : "記録なし"}</span>
+            </button>`;
+          }).join("")}
+        </div>
+        ${selected ? `<div class="health-detail-head"><div><h2>${escapeHTML(selected.name)}様</h2><span class="muted">${records.length}件の体調記録</span></div><button class="health-add-btn" type="button" onclick="startHealthCreate()">${icon("plus","icon icon-sm")}新規記録</button></div>` : ""}
+        ${renderHealthForm()}
+        ${selected ? `<div class="health-record-grid">${records.length ? records.map(renderHealthRecord).join("") : `<div class="empty">体調記録はまだありません。</div>`}</div>` : `<div class="empty">利用者様を選択してください。</div>`}`;
+    }
+    function saveHealthRecord() {
+      const u = me();
+      const resident = residentById(state.healthResidentId);
+      if (!u || u.role === "family" || !resident || resident.companyId !== u.companyId || !state.healthEditingId) return;
+      const recordedAt = document.getElementById("healthRecordedAt")?.value || "";
+      const temperature = Number(document.getElementById("healthTemperature")?.value);
+      const systolic = Number(document.getElementById("healthSystolic")?.value);
+      const diastolic = Number(document.getElementById("healthDiastolic")?.value);
+      const pulse = Number(document.getElementById("healthPulse")?.value);
+      const staple = document.getElementById("healthStaple")?.value || "";
+      const side = document.getElementById("healthSide")?.value || "";
+      const water = Number(document.getElementById("healthWater")?.value);
+      const memo = document.getElementById("healthMemo")?.value.trim() || "";
+      const valid = recordedAt && temperature >= 34 && temperature <= 42 && systolic >= 60 && systolic <= 240 && diastolic >= 30 && diastolic <= 150 && pulse >= 30 && pulse <= 200 && HEALTH_MEAL_LEVELS.includes(staple) && HEALTH_MEAL_LEVELS.includes(side) && water >= 0 && water <= 5000;
+      if (!valid) {
+        showToast("入力内容を確認してください");
+        return;
+      }
+      let record = state.healthEditingId === "new" ? null : DB.healthRecords.find(item => item.id === state.healthEditingId);
+      const wasNew = !record;
+      if (!record) {
+        record = { id:`health-${Date.now()}`, companyId:u.companyId, residentId:resident.id };
+        DB.healthRecords.push(record);
+      }
+      Object.assign(record, { recordedAt, temperature, systolic, diastolic, pulse, staple, side, water, memo, recorderId:u.id });
+      state.healthEditingId = null;
+      renderApp();
+      showSuccess(wasNew ? "体調記録を保存しました" : "体調記録を更新しました");
+    }
+
+    /* =========================
+       Shift calendar
+       ========================= */
+    const shiftTypeById = typeId => SHIFT_TYPES.find(type => type.id === typeId) || null;
+    const shiftRecordFor = (userId, date) => DB.shifts.find(record => record.companyId === me()?.companyId && record.userId === userId && record.date === date) || null;
+    function shiftDays(month) {
+      const [year,value] = String(month).split("-").map(Number);
+      if (!year || !value) return [];
+      return Array.from({ length:new Date(year,value,0).getDate() }, (_, index) => index + 1);
+    }
+    function shiftDateKey(month, day) {
+      return `${month}-${String(day).padStart(2,"0")}`;
+    }
+    function shiftDayMeta(month, day) {
+      const date = new Date(`${shiftDateKey(month,day)}T00:00:00`);
+      const weekday = new Intl.DateTimeFormat("ja-JP", { weekday:"short" }).format(date);
+      return { weekday, weekend:[0,6].includes(date.getDay()) };
+    }
+    function shiftTimeLabel(typeId, companyId = me()?.companyId) {
+      if (typeId === "off") return "休日";
+      const template = DB.workTemplates.find(item => item.companyId === companyId && item.id === typeId);
+      return template ? workTemplateTimeLabel(template) : "";
+    }
+    function setShiftMonth(value) {
+      if (!/^\d{4}-\d{2}$/.test(value)) return;
+      state.shiftMonth = value;
+      state.shiftEditing = null;
+      renderApp();
+    }
+    function openShiftEditor(userId, date) {
+      const u = me();
+      const person = userById(userId);
+      if (!hasManagementAccess(u) || !person || person.companyId !== u.companyId || person.role === "family" || !date.startsWith(`${state.shiftMonth}-`)) return;
+      state.shiftEditing = { userId, date };
+      renderApp();
+      requestAnimationFrame(() => document.getElementById("shiftEditor")?.scrollIntoView({ behavior:"smooth", block:"center" }));
+    }
+    function closeShiftEditor() {
+      state.shiftEditing = null;
+      renderApp();
+    }
+    function setShiftType(typeId) {
+      const u = me();
+      const editing = state.shiftEditing;
+      const type = shiftTypeById(typeId);
+      const person = userById(editing?.userId);
+      if (!hasManagementAccess(u) || !editing || !type || !person || person.companyId !== u.companyId || person.role === "family") return;
+      let record = shiftRecordFor(person.id, editing.date);
+      if (!record) {
+        record = { id:`shift-${Date.now()}`, companyId:u.companyId, userId:person.id, date:editing.date, type:typeId };
+        DB.shifts.push(record);
+      } else {
+        record.type = typeId;
+      }
+      state.shiftEditing = null;
+      renderApp();
+      showSuccess(`${person.name}さんのシフトを${type.label}に変更しました`);
+    }
+    function renderShiftEditor() {
+      const u = me();
+      const editing = state.shiftEditing;
+      if (!hasManagementAccess(u) || !editing) return "";
+      const person = userById(editing.userId);
+      const record = shiftRecordFor(editing.userId, editing.date);
+      if (!person || person.companyId !== u.companyId) return "";
+      return `<section class="shift-editor" id="shiftEditor" aria-labelledby="shiftEditorTitle">
+        <div class="shift-editor-head">
+          <span><strong id="shiftEditorTitle">${escapeHTML(person.name)}さん｜${escapeHTML(dateLabel(editing.date))}</strong><small>勤務種別を選択してください</small></span>
+          <button class="shift-editor-close" type="button" onclick="closeShiftEditor()">閉じる</button>
+        </div>
+        <div class="shift-choice-grid">
+          ${SHIFT_TYPES.map(type => `<button class="shift-choice ${type.className}" type="button" onclick="setShiftType('${type.id}')" aria-pressed="${record?.type === type.id}">${type.label}</button>`).join("")}
+        </div>
+      </section>`;
+    }
+    function renderShift() {
+      const u = me();
+      if (!u || u.role === "family") return "";
+      const staff = DB.users.filter(person => person.companyId === u.companyId && person.role !== "family");
+      const days = shiftDays(state.shiftMonth);
+      const canEdit = hasManagementAccess(u);
+      return `
+        ${pageHead("SHIFT CALENDAR","シフト表", canEdit ? "職員の月間シフトを確認・編集します。" : "月間シフトを確認できます。自分の行を緑色で表示しています。","calendar")}
+        <div class="shift-toolbar">
+          <div class="shift-month-field"><label for="shiftMonth">表示する月</label><input class="shift-month-input" id="shiftMonth" type="month" value="${escapeHTML(state.shiftMonth)}" onchange="setShiftMonth(this.value)"></div>
+          <button class="shift-print-btn" type="button" onclick="openShiftPrint()">${icon("print","icon icon-sm")}印刷／PDF</button>
+        </div>
+        <div class="shift-legend" aria-label="勤務種別の凡例">${SHIFT_TYPES.map(type => `<span class="${type.className}">${type.label}${type.id === "off" ? "" : ` ${escapeHTML(shiftTimeLabel(type.id))}`}</span>`).join("")}</div>
+        ${canEdit ? `<div class="info-box">${icon("info","icon icon-sm")}<span>変更するマスをタップし、勤務種別を選択してください。時刻は管理画面の勤務時間テンプレートと連動します。</span></div>` : ""}
+        ${renderShiftEditor()}
+        <div class="shift-scroll" role="region" aria-label="${escapeHTML(monthLabel(state.shiftMonth))}のシフト表" tabindex="0">
+          <table class="shift-table">
+            <thead><tr><th class="staff-col">職員名</th>${days.map(day => {
+              const meta = shiftDayMeta(state.shiftMonth,day);
+              return `<th class="${meta.weekend ? "weekend" : ""}">${day}<br>${escapeHTML(meta.weekday)}</th>`;
+            }).join("")}</tr></thead>
+            <tbody>${staff.map(person => `<tr class="${person.id === u.id ? "self-row" : ""}">
+              <th class="staff-col">${escapeHTML(person.name)}${person.id === u.id ? "<br><small>自分</small>" : ""}</th>
+              ${days.map(day => {
+                const date = shiftDateKey(state.shiftMonth,day);
+                const record = shiftRecordFor(person.id,date);
+                const type = shiftTypeById(record?.type);
+                const className = type?.className || "shift-none";
+                const label = type?.label || "—";
+                const time = type ? shiftTimeLabel(type.id,person.companyId) : "未定";
+                return `<td>${canEdit
+                  ? `<button class="shift-cell ${className}" type="button" onclick="openShiftEditor('${person.id}','${date}')" aria-label="${escapeHTML(person.name)} ${escapeHTML(dateLabel(date))} ${escapeHTML(label)}を変更" title="${escapeHTML(time)}">${escapeHTML(label)}</button>`
+                  : `<span class="shift-cell ${className}" title="${escapeHTML(time)}">${escapeHTML(label)}</span>`}</td>`;
+              }).join("")}
+            </tr>`).join("")}</tbody>
+          </table>
+        </div>
+        <p class="shift-help">${canEdit ? "横にスクロールして月全体を確認できます。" : "シフトの変更は施設長・管理権限者のみ行えます。横にスクロールして月全体を確認できます。"}</p>`;
+    }
+    function openShiftPrint() {
+      const u = me();
+      if (!u || u.role === "family") return;
+      const staff = DB.users.filter(person => person.companyId === u.companyId && person.role !== "family");
+      const days = shiftDays(state.shiftMonth);
+      const content = `
+        <div class="shift-print-legend">${SHIFT_TYPES.map(type => `<span class="${type.className}">${type.label}${type.id === "off" ? "" : ` ${escapeHTML(shiftTimeLabel(type.id))}`}</span>`).join("")}</div>
+        <table class="shift-print-table">
+          <thead><tr><th class="print-staff">職員名</th>${days.map(day => {
+            const meta = shiftDayMeta(state.shiftMonth,day);
+            return `<th class="${meta.weekend ? "weekend" : ""}">${day}<br>${escapeHTML(meta.weekday)}</th>`;
+          }).join("")}</tr></thead>
+          <tbody>${staff.map(person => `<tr><th class="print-staff">${escapeHTML(person.name)}</th>${days.map(day => {
+            const type = shiftTypeById(shiftRecordFor(person.id,shiftDateKey(state.shiftMonth,day))?.type);
+            return `<td class="${type?.className || ""}">${escapeHTML(type?.label || "—")}</td>`;
+          }).join("")}</tr>`).join("")}</tbody>
+        </table>`;
+      printDocument("シフト表", "月間シフト表", content, state.shiftMonth, "landscape");
+    }
+
+    /* =========================
        Contact book
        ========================= */
     function setRenrakuTab(id) { state.renrakuTab = id; renderApp(); }
@@ -2791,6 +3362,9 @@
     }
     function renderNote(note, u) {
       const author = userById(note.authorId);
+      const health = DB.healthRecords
+        .filter(record => record.companyId === note.companyId && record.residentId === note.residentId && String(record.recordedAt).slice(0,10) === note.dateKey)
+        .sort((a,b) => String(b.recordedAt).localeCompare(String(a.recordedAt)))[0] || null;
       return `<article class="card notebook-card">
         <div class="note-head"><span class="note-date">${escapeHTML(note.date)}</span><span class="note-author">記入<br>${escapeHTML(author?.name || "職員")}</span></div>
         <div class="summary-grid">
@@ -2798,6 +3372,7 @@
           <div class="summary"><strong>${escapeHTML(note.mood)}</strong><span>ご様子</span></div>
           <div class="summary"><strong>${escapeHTML(note.bath)}</strong><span>入浴</span></div>
         </div>
+        ${health ? `<div class="note-health-summary ${temperatureWarning(health) ? "warning" : ""}">${icon("health","icon icon-sm")}<span>体温 ${Number(health.temperature).toFixed(1)}℃・${escapeHTML(mealHealthLabel(health))}</span></div>` : ""}
         <div class="note-body">${escapeHTML(note.text)}</div>
         ${note.replies.map(reply => `<div class="reply-area"><strong>${icon("message","icon icon-sm")}ご家族から｜${escapeHTML(reply.author)}</strong>${escapeHTML(reply.text)}</div>`).join("")}
         ${u.role === "family" ? `<div class="reply-form"><label class="sr-only" for="reply-${note.id}">職員への返信</label><input class="reply-input" id="reply-${note.id}" placeholder="職員へのメッセージ"><button class="reply-submit" type="button" onclick="addReply('${note.id}')">返信する</button></div>` : ""}
@@ -2903,7 +3478,7 @@
       };
       return `
         ${pageHead("ADMINISTRATION","管理","施設のアカウントを確認・管理します。","admin")}
-        <div class="info-box">${icon("info","icon icon-sm")}<span>管理権限を付与した職員は、全職員の勤務記録を閲覧・追加・修正でき、「管理」と「帳票出力」も利用できます。職種表示は変わりません。変更内容はこのデモを再読み込みすると元に戻ります。</span></div>
+        <div class="info-box">${icon("info","icon icon-sm")}<span>管理権限を付与した職員は、全職員の勤務記録とシフトを編集でき、「管理」と「帳票出力」も利用できます。職種表示は変わりません。変更内容はこのデモを再読み込みすると元に戻ります。</span></div>
         <div class="section-title"><span>職員アカウント</span><small>${staff.length}名</small></div>
         <div class="account-grid">${staff.map(person => row(person, true)).join("")}</div>
         <button class="invite-btn" type="button" onclick="showToast('職員用の招待リンクを発行しました')">${icon("plus","icon icon-sm")}職員を招待する</button>
@@ -3057,8 +3632,9 @@
         </section>`;
     }
 
-    function printDocument(title, reportTitle, content, periodMonth = state.exportMonth) {
+    function printDocument(title, reportTitle, content, periodMonth = state.exportMonth, orientation = "portrait") {
       const company = myCompany();
+      const landscape = orientation === "landscape";
       const popup = window.open("", "_blank");
       if (!popup) {
         showToast("印刷画面を開けませんでした。ポップアップを許可してください");
@@ -3073,13 +3649,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${escapeHTML(documentTitle)}</title>
   <style>
-    @page { size: A4 portrait; margin: 14mm 12mm 16mm; }
+    @page { size: A4 ${landscape ? "landscape" : "portrait"}; margin: 14mm 12mm 16mm; }
     * { box-sizing: border-box; }
     body { margin: 0; color: #1d2925; background: #edf0ee; font-family: "Noto Sans JP","Yu Gothic",Meiryo,sans-serif; font-size: 11px; line-height: 1.6; }
     .toolbar { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 18px; color: #fff; background: #176b5d; box-shadow: 0 3px 14px rgba(0,0,0,.16); }
     .toolbar strong { font-size: 13px; }
     .toolbar button { min-height: 42px; padding: 0 18px; color: #176b5d; border: 0; border-radius: 9px; background: #fff; font: inherit; font-weight: 700; cursor: pointer; }
-    .paper { width: 210mm; min-height: 297mm; margin: 18px auto; padding: 14mm 12mm 16mm; background: #fff; box-shadow: 0 8px 30px rgba(0,0,0,.12); }
+    .paper { width: ${landscape ? "297mm" : "210mm"}; min-height: ${landscape ? "210mm" : "297mm"}; margin: 18px auto; padding: 14mm 12mm 16mm; background: #fff; box-shadow: 0 8px 30px rgba(0,0,0,.12); }
     .report-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; padding-bottom: 9px; border-bottom: 2px solid #176b5d; }
     .report-header h1 { margin: 0; color: #153f36; font-size: 21px; line-height: 1.35; letter-spacing: .04em; }
     .report-header .brand { color: #176b5d; font-size: 10px; font-weight: 800; letter-spacing: .08em; }
@@ -3104,6 +3680,18 @@
     .posts-report-table { table-layout: auto; }
     .posts-report-table .body-cell { width: 100%; min-width: 66mm; overflow-wrap: anywhere; }
     .attendance-report-table .nowrap { text-align: center; }
+    .shift-print-legend { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 9px; }
+    .shift-print-legend span { padding: 3px 7px; border: 1px solid; border-radius: 99px; font-size: 7.5px; font-weight: 700; }
+    .shift-print-table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 6.6px; line-height: 1.25; }
+    .shift-print-table th, .shift-print-table td { height: 9mm; padding: 2px 1px; border: 1px solid #9eaaa6; text-align: center; vertical-align: middle; white-space: nowrap; }
+    .shift-print-table th { color: #fff; background: #315e53; }
+    .shift-print-table .print-staff { width: 25mm; text-align: left; }
+    .shift-print-table .weekend { background: #7b4c49; }
+    .shift-early { color: #24546d; background: #e8f4f9; }
+    .shift-day { color: #176052; background: #e5f3ef; }
+    .shift-late { color: #805016; background: #fff3df; }
+    .shift-night { color: #5a4480; background: #f1ebf8; }
+    .shift-off { color: #59645f; background: #eef1f0; }
     .type-incident { color: #8e3b08; font-weight: 800; }
     .empty-print { padding: 34px; border: 1px solid #b8c1be; color: #66736f; text-align: center; }
     .print-footer { margin-top: 14px; padding-top: 6px; color: #66736f; border-top: 1px solid #b8c1be; font-size: 8.5px; text-align: right; }
