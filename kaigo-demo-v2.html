@@ -2210,14 +2210,17 @@
       renrakuTab: null,
       healthResidentId: null,
       healthEditingId: null,
+      healthReturnScroll: null,
       shiftMonth: todayKey().slice(0,7),
       shiftEditing: null,
+      shiftReturnScroll: null,
       viewHistory: [],
       attendanceUserId: null,
       attendanceMonth: todayKey().slice(0,7),
       workRecordUserId: null,
       workRecordMonth: todayKey().slice(0,7),
       workRecordEditingId: null,
+      workRecordReturnScroll: null,
       accountFormType: null,
       accountEditingId: null,
       staffCsvRows: [],
@@ -2231,7 +2234,8 @@
       lockPin: "",
       lockError: "",
       lockedView: "home",
-      lockedScrollY: 0
+      lockedScrollY: 0,
+      lockedScrollSnapshot: null
     };
 
     const me = () => DB.users.find(u => u.id === state.userId) || null;
@@ -2586,11 +2590,14 @@
         state.renrakuTab = null;
         state.healthResidentId = DB.residents.find(r => r.companyId === u.companyId)?.id || null;
         state.healthEditingId = null;
+        state.healthReturnScroll = null;
         state.shiftMonth = todayKey().slice(0,7);
         state.shiftEditing = null;
+        state.shiftReturnScroll = null;
         state.workRecordUserId = u.id;
         state.workRecordMonth = todayKey().slice(0,7);
         state.workRecordEditingId = null;
+        state.workRecordReturnScroll = null;
         state.exportResidentId = DB.residents.find(r => r.companyId === u.companyId)?.id || null;
         document.getElementById("loginRoot").classList.add("hidden");
         document.getElementById("lockRoot").classList.add("hidden");
@@ -2619,6 +2626,7 @@
       state.locked = true;
       state.lockedView = state.view;
       state.lockedScrollY = window.scrollY;
+      state.lockedScrollSnapshot = captureScrollSnapshot();
       state.lockPin = "";
       state.lockError = "";
       closeAttendanceDetail();
@@ -2682,15 +2690,15 @@
       const u = me();
       if (u && state.lockPin === u.pin) {
         const returnView = allowedViews().includes(state.lockedView) ? state.lockedView : (u.role === "family" ? "renraku" : "home");
-        const returnScrollY = state.lockedScrollY;
+        const returnScroll = state.lockedScrollSnapshot || { x:0, y:state.lockedScrollY, containers:{} };
         state.locked = false;
         state.lockPin = "";
         state.lockError = "";
+        state.lockedScrollSnapshot = null;
         state.view = returnView;
         document.getElementById("lockRoot").classList.add("hidden");
         document.getElementById("shell").classList.remove("hidden");
-        renderApp();
-        requestAnimationFrame(() => window.scrollTo({ top:returnScrollY, behavior:"auto" }));
+        renderApp({ restoreScroll:returnScroll });
         resetInactivityTimer();
         showToast("ロックを解除しました");
       } else {
@@ -2784,7 +2792,39 @@
       replaceRouteHash(route);
       renderApp();
     }
-    function renderApp() {
+    function captureScrollSnapshot() {
+      const containers = {};
+      document.querySelectorAll("[data-preserve-scroll]").forEach((element, index) => {
+        const key = element.dataset.preserveScroll || element.id || `scroll-${index}`;
+        containers[key] = { left:element.scrollLeft, top:element.scrollTop };
+      });
+      return { x:window.scrollX, y:window.scrollY, containers };
+    }
+    function scrollSnapshotForReturn(originalSnapshot) {
+      const currentSnapshot = captureScrollSnapshot();
+      if (!originalSnapshot) return currentSnapshot;
+      return {
+        ...originalSnapshot,
+        containers:{ ...(originalSnapshot.containers || {}), ...(currentSnapshot.containers || {}) }
+      };
+    }
+    function restoreScrollSnapshot(snapshot, { targetId = "", behavior = "smooth", block = "nearest" } = {}) {
+      if (!snapshot) return;
+      requestAnimationFrame(() => {
+        window.scrollTo({ left:snapshot.x || 0, top:snapshot.y || 0, behavior:"auto" });
+        Object.entries(snapshot.containers || {}).forEach(([key, position]) => {
+          const element = document.querySelector(`[data-preserve-scroll="${key}"]`);
+          if (!element) return;
+          element.scrollLeft = position.left || 0;
+          element.scrollTop = position.top || 0;
+        });
+        if (targetId) {
+          requestAnimationFrame(() => document.getElementById(targetId)?.scrollIntoView({ behavior, block }));
+        }
+      });
+    }
+    function renderApp({ preserveScroll = false, restoreScroll = null, scrollTargetId = "", scrollBehavior = "smooth", scrollBlock = "nearest" } = {}) {
+      const scrollSnapshot = restoreScroll || (preserveScroll ? captureScrollSnapshot() : null);
       const u = me();
       if (!u) { renderLogin(); return; }
       document.getElementById("loginRoot").classList.add("hidden");
@@ -2802,7 +2842,11 @@
       document.getElementById("mainContent").innerHTML = backControl + renderers[state.view]();
       renderNav();
       updateClock();
-      window.scrollTo({ top:0, behavior:"auto" });
+      if (scrollSnapshot) {
+        restoreScrollSnapshot(scrollSnapshot, { targetId:scrollTargetId, behavior:scrollBehavior, block:scrollBlock });
+      } else {
+        window.scrollTo({ left:0, top:0, behavior:"auto" });
+      }
     }
     function renderNav() {
       const unread = unreadCount();
@@ -2990,7 +3034,7 @@
         row.end = currentTime();
         showSuccess("退勤を記録しました");
       }
-      renderApp();
+      renderApp({ preserveScroll:true });
     }
     function attendanceMinutes(record) {
       if (!record?.start || !record?.end) return 0;
@@ -3149,31 +3193,36 @@
       if (!current || !canManageWorkRecords(current) || !target || target.companyId !== current.companyId || target.role === "family") return;
       state.workRecordUserId = target.id;
       state.workRecordEditingId = null;
-      renderApp();
-      requestAnimationFrame(() => document.getElementById("workRecordDetails")?.scrollIntoView({ behavior:"smooth", block:"start" }));
+      state.workRecordReturnScroll = null;
+      renderApp({ preserveScroll:true, scrollTargetId:"workRecordDetails", scrollBlock:"nearest" });
     }
     function setWorkRecordMonth(month) {
       if (!lastTwelveMonths().includes(month)) return;
       state.workRecordMonth = month;
       state.workRecordEditingId = null;
-      renderApp();
+      state.workRecordReturnScroll = null;
+      renderApp({ preserveScroll:true });
     }
     function startWorkRecordCreate() {
       if (!canManageWorkRecords(me()) || !workRecordTarget()) return;
+      state.workRecordReturnScroll = captureScrollSnapshot();
       state.workRecordEditingId = "new";
-      renderApp();
+      renderApp({ restoreScroll:state.workRecordReturnScroll, scrollTargetId:"workRecordEditor", scrollBlock:"nearest" });
     }
     function editWorkRecord(recordId) {
       const current = me();
       const target = workRecordTarget();
       const record = DB.attendance.find(item => item.id === recordId);
       if (!current || !canManageWorkRecords(current) || !target || !record || record.companyId !== current.companyId || record.userId !== target.id) return;
+      state.workRecordReturnScroll = captureScrollSnapshot();
       state.workRecordEditingId = record.id;
-      renderApp();
+      renderApp({ restoreScroll:state.workRecordReturnScroll, scrollTargetId:"workRecordEditor", scrollBlock:"nearest" });
     }
     function cancelWorkRecordEdit() {
+      const returnScroll = scrollSnapshotForReturn(state.workRecordReturnScroll);
       state.workRecordEditingId = null;
-      renderApp();
+      state.workRecordReturnScroll = null;
+      renderApp({ restoreScroll:returnScroll });
     }
     function workRecordMonthBounds(month) {
       const [year, value] = month.split("-").map(Number);
@@ -3202,7 +3251,7 @@
       const bounds = workRecordMonthBounds(state.workRecordMonth);
       const defaultDate = state.workRecordMonth === todayKey().slice(0,7) ? todayKey() : bounds.min;
       const templates = workTemplatesForCompany(me().companyId);
-      return `<section class="card work-record-editor">
+      return `<section class="card work-record-editor" id="workRecordEditor">
         <h2>${record ? "勤務記録を修正" : "勤務記録を追加"}</h2>
         <div class="template-quick-fill">
           <span>テンプレートから入力</span>
@@ -3266,8 +3315,10 @@
         record.end = end || null;
         record.auditTrail = [...(record.auditTrail || []), { date:todayKey(), time:currentTime(), actorId:current.id, action:"修正" }];
       }
+      const returnScroll = scrollSnapshotForReturn(state.workRecordReturnScroll);
       state.workRecordEditingId = null;
-      renderApp();
+      state.workRecordReturnScroll = null;
+      renderApp({ restoreScroll:returnScroll });
       showSuccess(recordId === "new" ? "勤務記録を追加しました" : "勤務記録を修正しました");
     }
     function renderWorkRecords() {
@@ -3360,12 +3411,12 @@
       const template = "【状況】\n\n【対応】\n";
       if (type === "incident" && !state.postDraft.trim()) state.postDraft = template;
       if (type === "normal" && state.postDraft === template) state.postDraft = "";
-      renderApp();
+      renderApp({ preserveScroll:true });
     }
-    function setPostShift(shift) { state.postShift = shift; renderApp(); }
-    function setPostResident(id) { state.postResidentId = id || null; renderApp(); }
-    function toggleImportant() { state.postImportant = !state.postImportant; renderApp(); }
-    function setPostFilter(filter) { state.postFilter = filter; renderApp(); }
+    function setPostShift(shift) { state.postShift = shift; renderApp({ preserveScroll:true }); }
+    function setPostResident(id) { state.postResidentId = id || null; renderApp({ preserveScroll:true }); }
+    function toggleImportant() { state.postImportant = !state.postImportant; renderApp({ preserveScroll:true }); }
+    function setPostFilter(filter) { state.postFilter = filter; renderApp({ preserveScroll:true }); }
     function renderPosts() {
       const u = me();
       const residents = DB.residents.filter(r => r.companyId === u.companyId);
@@ -3383,9 +3434,9 @@
           <label class="sr-only" for="postText">申し送り本文</label>
           <textarea class="textarea" id="postText" placeholder="共有したい内容を入力してください" oninput="state.postDraft=this.value">${escapeHTML(state.postDraft)}</textarea>
           <span class="form-label">勤務帯</span>
-          <div class="chips">${["早番","日勤","遅番","夜勤"].map(s => `<button class="chip ${state.postShift === s ? "active" : ""}" type="button" onclick="setPostShift('${s}')">${s}</button>`).join("")}</div>
+          <div class="chips" data-preserve-scroll="post-shifts">${["早番","日勤","遅番","夜勤"].map(s => `<button class="chip ${state.postShift === s ? "active" : ""}" type="button" onclick="setPostShift('${s}')">${s}</button>`).join("")}</div>
           <span class="form-label">対象の利用者</span>
-          <div class="chips">
+          <div class="chips" data-preserve-scroll="post-residents">
             <button class="chip ${state.postResidentId === null ? "active" : ""}" type="button" onclick="setPostResident('')">全体</button>
             ${residents.map(r => `<button class="chip ${state.postResidentId === r.id ? "active" : ""}" type="button" onclick="setPostResident('${r.id}')">${escapeHTML(r.name)}</button>`).join("")}
           </div>
@@ -3395,7 +3446,7 @@
           <button class="primary-btn send-btn" type="button" onclick="addPost()">${icon("send","icon icon-sm")}申し送りを送信</button>
         </section>
         <div class="section-title"><span>申し送り一覧</span><small>未読 ${unreadCount()}件</small></div>
-        <div class="filter-row" aria-label="申し送りの絞り込み">
+        <div class="filter-row" data-preserve-scroll="post-filters" aria-label="申し送りの絞り込み">
           ${[
             ["all","すべて"],["important","重要"],["incident","ヒヤリハット"]
           ].map(f => `<button class="filter-btn ${state.postFilter === f[0] ? "active" : ""}" type="button" onclick="setPostFilter('${f[0]}')">${f[1]}</button>`).join("")}
@@ -3455,7 +3506,7 @@
       state.postType = "normal";
       state.postImportant = false;
       state.postFilter = "all";
-      renderApp();
+      renderApp({ preserveScroll:true });
       showSuccess("申し送りを送信しました");
     }
     function markRead(postId) {
@@ -3464,7 +3515,7 @@
       if (!post || !u || post.companyId !== u.companyId) return;
       if (post.authorId !== u.id && !post.readBy.includes(u.id)) {
         post.readBy.push(u.id);
-        renderApp();
+        renderApp({ preserveScroll:true });
         showToast("確認済みにしました");
       }
     }
@@ -3498,24 +3549,27 @@
       if (!resident || resident.companyId !== me()?.companyId || me()?.role === "family") return;
       state.healthResidentId = residentId;
       state.healthEditingId = null;
-      renderApp();
+      state.healthReturnScroll = null;
+      renderApp({ preserveScroll:true });
     }
     function startHealthCreate() {
       if (me()?.role === "family" || !residentById(state.healthResidentId)) return;
+      state.healthReturnScroll = captureScrollSnapshot();
       state.healthEditingId = "new";
-      renderApp();
-      requestAnimationFrame(() => document.getElementById("healthForm")?.scrollIntoView({ behavior:"smooth", block:"start" }));
+      renderApp({ restoreScroll:state.healthReturnScroll, scrollTargetId:"healthForm", scrollBlock:"nearest" });
     }
     function startHealthEdit(recordId) {
       const record = DB.healthRecords.find(item => item.id === recordId);
       if (!record || record.companyId !== me()?.companyId || record.residentId !== state.healthResidentId || me()?.role === "family") return;
+      state.healthReturnScroll = captureScrollSnapshot();
       state.healthEditingId = recordId;
-      renderApp();
-      requestAnimationFrame(() => document.getElementById("healthForm")?.scrollIntoView({ behavior:"smooth", block:"start" }));
+      renderApp({ restoreScroll:state.healthReturnScroll, scrollTargetId:"healthForm", scrollBlock:"nearest" });
     }
     function cancelHealthEdit() {
+      const returnScroll = scrollSnapshotForReturn(state.healthReturnScroll);
       state.healthEditingId = null;
-      renderApp();
+      state.healthReturnScroll = null;
+      renderApp({ restoreScroll:returnScroll });
     }
     function healthMealOptions(selected) {
       return HEALTH_MEAL_LEVELS.map(value => `<option value="${value}" ${selected === value ? "selected" : ""}>${value}</option>`).join("");
@@ -3614,8 +3668,10 @@
         DB.healthRecords.push(record);
       }
       Object.assign(record, { recordedAt, temperature, systolic, diastolic, pulse, staple, side, water, memo, recorderId:u.id });
+      const returnScroll = scrollSnapshotForReturn(state.healthReturnScroll);
       state.healthEditingId = null;
-      renderApp();
+      state.healthReturnScroll = null;
+      renderApp({ restoreScroll:returnScroll });
       showSuccess(wasNew ? "体調記録を保存しました" : "体調記録を更新しました");
     }
 
@@ -3646,19 +3702,22 @@
       if (!/^\d{4}-\d{2}$/.test(value)) return;
       state.shiftMonth = value;
       state.shiftEditing = null;
-      renderApp();
+      state.shiftReturnScroll = null;
+      renderApp({ preserveScroll:true });
     }
     function openShiftEditor(userId, date) {
       const u = me();
       const person = userById(userId);
       if (!hasManagementAccess(u) || !person || person.companyId !== u.companyId || person.role === "family" || !date.startsWith(`${state.shiftMonth}-`)) return;
+      state.shiftReturnScroll = captureScrollSnapshot();
       state.shiftEditing = { userId, date };
-      renderApp();
-      requestAnimationFrame(() => document.getElementById("shiftEditor")?.scrollIntoView({ behavior:"smooth", block:"center" }));
+      renderApp({ restoreScroll:state.shiftReturnScroll, scrollTargetId:"shiftEditor", scrollBlock:"nearest" });
     }
     function closeShiftEditor() {
+      const returnScroll = scrollSnapshotForReturn(state.shiftReturnScroll);
       state.shiftEditing = null;
-      renderApp();
+      state.shiftReturnScroll = null;
+      renderApp({ restoreScroll:returnScroll });
     }
     function setShiftType(typeId) {
       const u = me();
@@ -3673,8 +3732,10 @@
       } else {
         record.type = typeId;
       }
+      const returnScroll = scrollSnapshotForReturn(state.shiftReturnScroll);
       state.shiftEditing = null;
-      renderApp();
+      state.shiftReturnScroll = null;
+      renderApp({ restoreScroll:returnScroll });
       showSuccess(`${person.name}さんのシフトを${type.label}に変更しました`);
     }
     function renderShiftEditor() {
@@ -3709,7 +3770,7 @@
         <div class="shift-legend" aria-label="勤務種別の凡例">${SHIFT_TYPES.map(type => `<span class="${type.className}">${type.label}${type.id === "off" ? "" : ` ${escapeHTML(shiftTimeLabel(type.id))}`}</span>`).join("")}</div>
         ${canEdit ? `<div class="info-box">${icon("info","icon icon-sm")}<span>変更するマスをタップし、勤務種別を選択してください。時刻は管理画面の勤務時間テンプレートと連動します。</span></div>` : ""}
         ${renderShiftEditor()}
-        <div class="shift-scroll" role="region" aria-label="${escapeHTML(monthLabel(state.shiftMonth))}のシフト表" tabindex="0">
+        <div class="shift-scroll" data-preserve-scroll="shift-calendar" role="region" aria-label="${escapeHTML(monthLabel(state.shiftMonth))}のシフト表" tabindex="0">
           <table class="shift-table">
             <thead><tr><th class="staff-col">職員名</th>${days.map(day => {
               const meta = shiftDayMeta(state.shiftMonth,day);
@@ -3756,7 +3817,7 @@
     /* =========================
        Contact book
        ========================= */
-    function setRenrakuTab(id) { state.renrakuTab = id; renderApp(); }
+    function setRenrakuTab(id) { state.renrakuTab = id; renderApp({ preserveScroll:true }); }
     function renderRenraku() {
       const u = me();
       let residents = DB.residents.filter(r => r.companyId === u.companyId);
@@ -3767,7 +3828,7 @@
       return `
         ${pageHead("DAILY NOTE","連絡帳", u.role === "family" ? "施設での今日のご様子をお伝えします。" : "利用者様の一日をご家族へ共有します。","book")}
         ${u.role === "family" ? `<button class="guide-reopen" type="button" onclick="openGuide(true)">${icon("info","icon icon-sm")}はじめてガイドをもう一度見る</button>` : ""}
-        ${residents.length > 1 ? `<div class="resident-tabs">${residents.map(r => `<button class="resident-tab ${state.renrakuTab === r.id ? "active" : ""}" type="button" onclick="setRenrakuTab('${r.id}')">${escapeHTML(r.name)}様</button>`).join("")}</div>` : ""}
+        ${residents.length > 1 ? `<div class="resident-tabs" data-preserve-scroll="contact-residents">${residents.map(r => `<button class="resident-tab ${state.renrakuTab === r.id ? "active" : ""}" type="button" onclick="setRenrakuTab('${r.id}')">${escapeHTML(r.name)}様</button>`).join("")}</div>` : ""}
         ${selected ? `<div class="section-title"><span>${escapeHTML(selected.name)}様の記録</span><small>${selected.age}歳・${escapeHTML(selected.care)}</small></div>` : ""}
         ${entries.length ? `<div class="note-grid">${entries.map(n => renderNote(n,u)).join("")}</div>` : `<div class="empty">連絡帳の記録はまだありません。</div>`}`;
     }
@@ -3798,7 +3859,7 @@
         return;
       }
       note.replies.push({ author:me().name, text });
-      renderApp();
+      renderApp({ preserveScroll:true });
       showSuccess("返信を送信しました");
     }
 
@@ -3858,7 +3919,7 @@
         change.template.start = change.start;
         change.template.end = change.end;
       });
-      renderApp();
+      renderApp({ preserveScroll:true });
       showSuccess("この施設の勤務時間テンプレートを保存しました");
     }
     function renderAdmin() {
@@ -3919,7 +3980,7 @@
           <strong>${escapeHTML(state.staffCsvFileName || "選択したCSV")}｜${validRows.length}名を登録できます</strong>
           <span>${invalidRows.length ? `${invalidRows.length}行はエラーのためスキップ` : "全行に問題はありません"}</span>
         </div>
-        <div class="staff-csv-table-wrap">
+        <div class="staff-csv-table-wrap" data-preserve-scroll="staff-csv-preview">
           <table class="staff-csv-table">
             <thead><tr><th>行</th><th>氏名</th><th>役職</th><th>権限</th><th>結果</th></tr></thead>
             <tbody>${state.staffCsvRows.map(row => `<tr class="${row.errors.length ? "invalid" : ""}">
@@ -3963,7 +4024,7 @@
         if ([nameIndex,roleIndex,permissionIndex,pinIndex].some(index => index < 0)) {
           state.staffCsvRows = [];
           state.staffCsvFileName = "";
-          renderApp();
+          renderApp({ preserveScroll:true });
           showToast("テンプレートと同じ4列のCSVを選択してください");
           return;
         }
@@ -3979,13 +4040,13 @@
           if (!["職員","管理者"].includes(permission)) errors.push("権限を確認");
           return { rowNumber:index + 2, name, roleLabel, permission, pin, errors };
         });
-        renderApp();
+        renderApp({ preserveScroll:true });
         const validCount = state.staffCsvRows.filter(row => !row.errors.length).length;
         showToast(`${validCount}名を登録できます。内容を確認してください`);
       } catch (error) {
         state.staffCsvRows = [];
         state.staffCsvFileName = "";
-        renderApp();
+        renderApp({ preserveScroll:true });
         showToast("CSVを読み込めませんでした");
       }
     }
@@ -4012,7 +4073,7 @@
       const invalidCount = state.staffCsvRows.length - validRows.length;
       state.staffCsvRows = [];
       state.staffCsvFileName = "";
-      renderApp();
+      renderApp({ preserveScroll:true });
       showSuccess(`${validRows.length}名の職員を登録しました`);
       if (invalidCount) showToast(`${invalidCount}行はエラーのためスキップしました`);
     }
@@ -4153,7 +4214,7 @@
         DB.users.push(newUser);
       }
       closeAccountModal();
-      renderApp();
+      renderApp({ preserveScroll:true });
       showSuccess(person ? "アカウントを更新しました" : "アカウントを追加しました");
     }
     function deleteAccount(userId) {
@@ -4169,7 +4230,7 @@
       if (index < 0) return;
       DB.users.splice(index,1);
       if (state.workRecordUserId === target.id) state.workRecordUserId = actor.id;
-      renderApp();
+      renderApp({ preserveScroll:true });
       showSuccess("アカウントを削除しました");
     }
     function toggleAdminRole(userId) {
@@ -4186,11 +4247,11 @@
       }
       if (target.managementAccess === true) {
         delete target.managementAccess;
-        renderApp();
+        renderApp({ preserveScroll:true });
         showSuccess(`${target.name}さんの管理権限を解除しました`);
       } else {
         target.managementAccess = true;
-        renderApp();
+        renderApp({ preserveScroll:true });
         showSuccess(`${target.name}さんに管理権限と勤務記録の閲覧・編集権限を付与しました`);
       }
     }
@@ -4231,18 +4292,18 @@
     function setExportMonth(value) {
       if (!/^\d{4}-\d{2}$/.test(value)) return;
       state.exportMonth = value;
-      renderApp();
+      renderApp({ preserveScroll:true });
     }
     function setExportType(type) {
       if (!["renraku","posts","attendance"].includes(type)) return;
       state.exportType = type;
-      renderApp();
+      renderApp({ preserveScroll:true });
     }
     function setExportResident(id) {
       const resident = residentById(id);
       if (!resident || resident.companyId !== me()?.companyId) return;
       state.exportResidentId = id;
-      renderApp();
+      renderApp({ preserveScroll:true });
     }
     function exportRecordCount() {
       const u = me();
@@ -4644,7 +4705,7 @@
           record.end = end || null;
           imported += 1;
         });
-        renderApp();
+        renderApp({ preserveScroll:true });
         showToast(`${imported}件を取り込みました${skipped ? `（${skipped}件は確認が必要です）` : ""}`);
       } catch (error) {
         showToast("CSVを読み込めませんでした");
