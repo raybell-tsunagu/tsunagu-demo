@@ -1512,6 +1512,24 @@
     }
     .export-action:hover { background: var(--brand-dark); }
     .export-action:active { transform: translateY(1px); }
+    .export-actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 8px;
+    }
+    .export-actions .export-action {
+      min-height: 58px;
+      padding: 8px;
+      font-size: 12.5px;
+      line-height: 1.4;
+    }
+    .export-actions .export-action.print {
+      color: var(--brand-dark);
+      border: 1.5px solid #9fc6bb;
+      background: #fff;
+      box-shadow: none;
+    }
+    .export-actions .export-action.print:hover { background: var(--brand-pale); }
     .export-note { margin: 9px 1px 0; color: var(--muted); font-size: 10.5px; }
     .csv-import-panel {
       margin-top: 12px;
@@ -4674,12 +4692,12 @@
       const count = exportRecordCount();
       const incidentStats = incidentMonthStats(u.companyId, state.exportMonth);
       const incidentDifference = `${incidentStats.difference > 0 ? "+" : incidentStats.difference < 0 ? "" : "±"}${incidentStats.difference}件`;
-      const isCsv = state.exportType === "attendance";
+      const isAttendance = state.exportType === "attendance";
       const csvButtonLabel = "showDirectoryPicker" in window ? "保存先フォルダを選択して保存" : "CSVをダウンロード";
       const options = [
         { id:"renraku", icon:"book", title:"連絡帳（利用者別）", desc:"日々の連絡帳を利用者ごとにまとめます" },
         { id:"posts", icon:"note", title:"申し送り・ヒヤリハット", desc:"申し送りを時系列の一覧表にします" },
-        { id:"attendance", icon:"clock", title:"出退勤記録（CSV）", desc:"職員別の打刻記録をExcel用に保存します" }
+        { id:"attendance", icon:"clock", title:"出退勤記録", desc:"全職員の出勤簿を印刷／PDFまたはCSVで保存します" }
       ];
       return `
         ${pageHead("RECORD EXPORT","帳票出力","月ごとの記録を、監査・保管用の帳票として出力します。","export")}
@@ -4707,14 +4725,20 @@
           </div>` : ""}
         </section>
         <section class="export-step">
-          <div class="export-step-head"><span class="export-step-number">3</span><span><strong>内容を確認して出力</strong><small>${isCsv ? "CSVファイルとして保存します" : "A4印刷用の新しい画面を開きます"}</small></span></div>
+          <div class="export-step-head"><span class="export-step-number">3</span><span><strong>内容を確認して出力</strong><small>${isAttendance ? "CSV保存またはA4印刷用プレビューを選べます" : "A4印刷用の新しい画面を開きます"}</small></span></div>
           <div class="export-summary">${icon("info","icon icon-sm")}<span><strong>${escapeHTML(myCompany().name)}</strong><br>${monthLabel(state.exportMonth)}｜${state.exportType === "renraku" ? `${escapeHTML(selectedResident?.name || "")}様｜` : ""}${count}件の記録</span></div>
-          <button class="export-action" type="button" onclick="${isCsv ? "saveAttendanceCsv()" : "openPrintPreview()"}">
-            ${icon(isCsv && "showDirectoryPicker" in window ? "folder" : isCsv ? "export" : "print","icon icon-sm")}
-            ${isCsv ? csvButtonLabel : "印刷用プレビューを開く"}
-          </button>
-          <p class="export-note">${isCsv ? "BOM付きUTF-8形式で保存するため、Excelでも日本語が文字化けしません。" : "プレビュー画面の「印刷／PDF保存」から保存できます。"}</p>
-          ${isCsv ? `<div class="csv-import-panel">
+          ${isAttendance ? `<div class="export-actions">
+            <button class="export-action" type="button" onclick="saveAttendanceCsv()">
+              ${icon("showDirectoryPicker" in window ? "folder" : "export","icon icon-sm")}${csvButtonLabel}
+            </button>
+            <button class="export-action print" type="button" onclick="openAttendancePrintPreview()">
+              ${icon("print","icon icon-sm")}印刷／PDF
+            </button>
+          </div>` : `<button class="export-action" type="button" onclick="openPrintPreview()">
+            ${icon("print","icon icon-sm")}印刷用プレビューを開く
+          </button>`}
+          <p class="export-note">${isAttendance ? "CSVはBOM付きUTF-8形式です。印刷／PDFはA4縦の月次出勤簿を開きます。" : "プレビュー画面の「印刷／PDF保存」から保存できます。"}</p>
+          ${isAttendance ? `<div class="csv-import-panel">
             <strong>出退勤CSVをインポート</strong>
             <p>つなぐノートから出力したCSVを取り込みます。反映内容はリロードすると元に戻ります。</p>
             <input class="sr-only" id="attendanceCsvImport" type="file" accept=".csv,text/csv" onchange="importAttendanceCsvFile(this.files[0]);this.value=''">
@@ -4772,6 +4796,19 @@
     .posts-report-table .resident-cell { min-width: 22mm; white-space: nowrap; word-break: keep-all; overflow-wrap: normal; }
     .posts-report-table .body-cell { width: 100%; min-width: 66mm; overflow-wrap: anywhere; }
     .attendance-report-table .nowrap { text-align: center; }
+    .attendance-print-block { margin: 0 0 12px; break-inside: auto; }
+    .attendance-print-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 8px; color: #153f36; border: 1px solid #9eaaa6; border-bottom: 0; background: #e9f3f0; break-after: avoid; }
+    .attendance-print-head strong { font-size: 11px; }
+    .attendance-print-head span:last-child { color: #53635e; font-size: 8.5px; }
+    .attendance-print-table { table-layout: fixed; font-size: 8.2px; line-height: 1.4; }
+    .attendance-print-table th, .attendance-print-table td { padding: 4px 3px; text-align: center; vertical-align: middle; }
+    .attendance-print-table .nowrap { white-space: nowrap; word-break: keep-all; overflow-wrap: normal; }
+    .attendance-print-total { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px 14px; padding: 6px 8px; border: 1px solid #9eaaa6; border-top: 0; background: #f7f9f8; font-size: 8.8px; font-weight: 700; break-before: avoid; }
+    .attendance-print-total strong { margin-left: 3px; color: #153f36; }
+    .attendance-print-total .overtime-warning strong { color: #a8490c; }
+    .overtime-warning { color: #a8490c !important; font-weight: 800 !important; }
+    .attendance-amended { display: inline-flex; margin-top: 2px; padding: 1px 4px; color: #855011; border: 1px solid #d5aa6e; border-radius: 99px; background: #fff4df; font-size: 6.8px; font-weight: 800; line-height: 1.35; }
+    .attendance-print-empty { padding: 9px; color: #66736f; border: 1px solid #9eaaa6; background: #fafbfb; font-size: 9px; text-align: center; }
     .shift-print-legend { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 9px; }
     .shift-print-legend span { padding: 3px 7px; border: 1px solid; border-radius: 99px; font-size: 7.5px; font-weight: 700; }
     .shift-print-table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 6.6px; line-height: 1.25; }
@@ -4880,7 +4917,7 @@
       const records = individualAttendanceRecords(userId, month);
       if (!person || records === null) return null;
       const lines = [
-        ["職員名","役割","日付","勤務回","出勤時刻","退勤時刻","勤務時間","超過時間"],
+        ["職員名","役割","日付","勤務回","出勤時刻","退勤時刻","勤務時間","時間外"],
         ...records.map(row => [person.name, person.roleLabel, row.date, `${attendanceRoundNumber(row)}回目`, row.start || "", row.end || "", durationLabel(row), overtimeMinutesLabel(row)])
       ];
       return lines.map(line => line.map(csvCell).join(",")).join("\r\n");
@@ -4912,10 +4949,70 @@
         <div class="record-head"><span>職員：${escapeHTML(person.name)}（${escapeHTML(person.roleLabel)}）</span><span>出勤 ${attendanceDays}日・勤務 ${records.length}回｜合計 ${totalLabel}｜超過 ${minutesLabel(overtimeTotal)}</span></div>
         ${records.length ? `<table class="list-table attendance-report-table">
           <colgroup><col style="width:22%"><col style="width:12%"><col style="width:16.5%"><col style="width:16.5%"><col style="width:16.5%"><col style="width:16.5%"></colgroup>
-          <thead><tr><th class="nowrap">日付</th><th class="nowrap">勤務回</th><th class="nowrap">出勤時刻</th><th class="nowrap">退勤時刻</th><th class="nowrap">勤務時間</th><th class="nowrap">超過時間</th></tr></thead>
+          <thead><tr><th class="nowrap">日付</th><th class="nowrap">勤務回</th><th class="nowrap">出勤時刻</th><th class="nowrap">退勤時刻</th><th class="nowrap">勤務時間</th><th class="nowrap">時間外</th></tr></thead>
           <tbody>${rows}</tbody>
         </table>` : `<div class="empty-print">この月の勤務記録はありません。</div>`}`;
       printDocument("個人勤務履歴", `${person.name}｜勤務履歴`, content, month);
+    }
+
+    function attendanceMonthSummary(records) {
+      const totalMinutes = records.reduce((sum, record) => sum + attendanceMinutes(record), 0);
+      const overtimeTotal = records.reduce((sum, record) => sum + overtimeMinutes(record), 0);
+      return {
+        attendanceDays:attendanceDayCount(records),
+        totalMinutes,
+        totalLabel:`${Math.floor(totalMinutes / 60)}時間${totalMinutes % 60}分`,
+        overtimeTotal,
+        overtimeLabel:minutesLabel(overtimeTotal)
+      };
+    }
+    function attendancePrintContent(month = state.exportMonth) {
+      const current = me();
+      if (!current || !hasManagementAccess(current) || !/^\d{4}-\d{2}$/.test(month)) return null;
+      const staff = DB.users
+        .filter(person => person.companyId === current.companyId && person.role !== "family")
+        .sort((a,b) => a.name.localeCompare(b.name, "ja"));
+      return staff.map(person => {
+        const records = individualAttendanceRecords(person.id, month) || [];
+        const summary = attendanceMonthSummary(records);
+        const rows = records.map(record => {
+          const amendedEntries = (record.auditTrail || []).filter(entry => entry.action === "修正");
+          const latestAmendment = amendedEntries.at(-1);
+          const amendedNote = latestAmendment
+            ? `<small class="attendance-amended" title="${escapeHTML(workRecordAuditLabel(latestAmendment))}">修正あり</small>`
+            : "";
+          const overtime = overtimeMinutes(record);
+          return `<tr>
+            <td class="nowrap"><span>${escapeHTML(record.date)}</span>${amendedNote}</td>
+            <td class="nowrap">${attendanceRoundNumber(record)}回目</td>
+            <td class="nowrap">${escapeHTML(record.start || "--:--")}</td>
+            <td class="nowrap">${escapeHTML(record.end || "--:--")}</td>
+            <td class="nowrap">${escapeHTML(durationLabel(record))}</td>
+            <td class="nowrap ${overtime ? "overtime-warning" : ""}">${escapeHTML(minutesLabel(overtime))}</td>
+          </tr>`;
+        }).join("");
+        return `<section class="attendance-print-block">
+          <div class="attendance-print-head">
+            <strong>${escapeHTML(person.name)}（${escapeHTML(person.roleLabel)}）</strong>
+            <span>${records.length}勤務</span>
+          </div>
+          ${records.length ? `<table class="list-table attendance-print-table">
+            <colgroup><col style="width:20%"><col style="width:12%"><col style="width:16%"><col style="width:16%"><col style="width:18%"><col style="width:18%"></colgroup>
+            <thead><tr><th class="nowrap">日付</th><th class="nowrap">勤務回</th><th class="nowrap">出勤時刻</th><th class="nowrap">退勤時刻</th><th class="nowrap">勤務時間</th><th class="nowrap">時間外</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>` : `<div class="attendance-print-empty">この月の勤務記録はありません。</div>`}
+          <div class="attendance-print-total">
+            <span>出勤日数<strong>${summary.attendanceDays}日</strong></span>
+            <span>勤務時間合計<strong>${escapeHTML(summary.totalLabel)}</strong></span>
+            <span class="${summary.overtimeTotal ? "overtime-warning" : ""}">時間外合計<strong>${escapeHTML(summary.overtimeLabel)}</strong></span>
+          </div>
+        </section>`;
+      }).join("") || `<div class="empty-print">職員アカウントがありません。</div>`;
+    }
+    function openAttendancePrintPreview() {
+      const content = attendancePrintContent(state.exportMonth);
+      if (content === null) return;
+      printDocument("出退勤月次出勤簿", "出退勤 月次出勤簿", content, state.exportMonth, "portrait");
     }
 
     function attendanceCsvData() {
@@ -4929,7 +5026,7 @@
           const nameOrder = (userById(a.userId)?.name || "").localeCompare(userById(b.userId)?.name || "", "ja");
           return nameOrder || compareAttendanceRecords(a,b);
         });
-      const header = ["職員名","役割","日付","勤務回","出勤時刻","退勤時刻","勤務時間","超過時間"];
+      const header = ["職員名","役割","日付","勤務回","出勤時刻","退勤時刻","勤務時間","時間外"];
       const lines = [header, ...rows.map(row => {
         const person = userById(row.userId);
         return [person?.name || "不明", person?.roleLabel || "", row.date, `${attendanceRoundNumber(row)}回目`, row.start || "", row.end || "", durationLabel(row), overtimeMinutesLabel(row)];
