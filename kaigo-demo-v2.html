@@ -363,6 +363,22 @@
     .pin-dot.filled { border-color: var(--brand); background: var(--brand); transform: scale(1.08); }
     .pin-wrap.shake { animation: shake .38s ease; }
     .pin-error { min-height: 24px; margin: -7px 0 6px; color: var(--important); font-size: 12.5px; font-weight: 700; text-align: center; }
+    .device-auth-wrap.shake { animation: shake .38s ease; }
+    .device-auth-success {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 12px 0;
+      padding: 11px 12px;
+      color: var(--brand-dark);
+      border: 1px solid #bcd8cf;
+      border-radius: 12px;
+      background: var(--brand-soft);
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .device-demo-note { margin: 8px 2px 0; color: var(--muted); font-size: 10.5px; line-height: 1.55; text-align: center; }
+    .pin-lock-note { min-height: 38px; margin-top: -3px; line-height: 1.55; }
     .keypad {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -382,6 +398,7 @@
       cursor: pointer;
     }
     .key:active { background: var(--brand-soft); transform: scale(.98); }
+    .key:disabled { color: #98a49f; border-color: #dce3e0; background: #eef1f0; cursor: not-allowed; }
     .key.blank { visibility: hidden; }
     .key.delete { color: var(--muted); font-size: 0; }
     .demo-hint {
@@ -1327,6 +1344,27 @@
     .staff-csv-status.valid { color: var(--brand-dark); }
     .staff-csv-status.invalid { color: var(--important); }
     .staff-csv-confirm { margin-top: 10px; }
+    .security-admin-grid { display: grid; gap: 10px; }
+    .security-admin-card { margin: 0; }
+    .security-admin-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .security-admin-copy { min-width: 0; }
+    .security-admin-copy strong { display: block; font-size: 13px; }
+    .security-admin-copy span { display: block; margin-top: 3px; color: var(--muted); font-size: 10.5px; line-height: 1.55; }
+    .security-admin-button {
+      min-width: 92px;
+      min-height: 44px;
+      flex: 0 0 auto;
+      padding: 0 11px;
+      color: var(--important);
+      border: 1px solid #e4bbb8;
+      border-radius: 10px;
+      background: var(--important-soft);
+      font-size: 11px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .security-admin-empty { margin: 0; padding: 13px; color: var(--muted); border: 1px dashed var(--line-strong); border-radius: 12px; background: #fafcfb; font-size: 11px; }
+    .security-admin-note { margin: 8px 2px 0; color: var(--muted); font-size: 10.5px; line-height: 1.6; }
     .work-template-section { margin-top: 18px; }
     .work-template-card { padding: 15px; }
     .work-template-grid { display: grid; gap: 10px; }
@@ -1790,6 +1828,8 @@
       .attendance-row { grid-template-columns: 42px minmax(0,1fr); align-items: start; }
       .attendance-time { grid-column: 2; text-align: left; }
       .record-link { justify-content: flex-start; }
+      .security-admin-row { align-items: stretch; flex-direction: column; }
+      .security-admin-button { width: 100%; }
     }
     @media (min-width: 720px) {
       body { padding: 12px 16px; }
@@ -2064,8 +2104,8 @@
     };
     const DB = {
       companies: [
-        { id: "c1", code: "himawari", name: "ひまわりデイサービス", type: "通所介護" },
-        { id: "c2", code: "sakura", name: "グループホーム さくらの家", type: "認知症対応型共同生活介護" }
+        { id: "c1", code: "himawari", name: "ひまわりデイサービス", type: "通所介護", devicePassword: "himawari-demo" },
+        { id: "c2", code: "sakura", name: "グループホーム さくらの家", type: "認知症対応型共同生活介護", devicePassword: "sakura-demo" }
       ],
       users: [
         { id: "u1", companyId: "c1", name: "山田 今日子", role: "admin", roleLabel: "施設長", pin: "0000" },
@@ -2206,8 +2246,13 @@
       loginAudience: null,
       loginCompanyId: null,
       loginUserId: null,
+      devicePassword: "",
+      devicePasswordError: "",
+      deviceAuthMessage: "",
+      deviceAuthorizations: new Map(),
       pin: "",
       pinError: "",
+      pinSecurity: new Map(),
       postType: "normal",
       postDraft: "",
       postShift: "日勤",
@@ -2291,19 +2336,107 @@
         (audience === "family" ? user.role === "family" : audience === "staff" && user.role !== "family")
       );
     }
+    const PIN_FAILURE_LIMIT = 5;
+    const PIN_LOCK_DURATION_MS = 60_000;
+    function browserLabel() {
+      const agent = typeof navigator === "undefined" ? "" : navigator.userAgent;
+      if (/Edg\//.test(agent)) return "Microsoft Edge";
+      if (/Chrome\//.test(agent)) return "Google Chrome";
+      if (/Firefox\//.test(agent)) return "Firefox";
+      if (/Safari\//.test(agent)) return "Safari";
+      return "ブラウザ";
+    }
+    function deviceAuthorizationFor(companyId) {
+      return state.deviceAuthorizations.get(companyId) || null;
+    }
+    function isDeviceAuthorized(companyId) {
+      return Boolean(companyId && deviceAuthorizationFor(companyId));
+    }
+    function formattedDateTime(value) {
+      const date = value ? new Date(value) : new Date();
+      return new Intl.DateTimeFormat("ja-JP", {
+        year:"numeric", month:"numeric", day:"numeric", hour:"2-digit", minute:"2-digit", hour12:false
+      }).format(date);
+    }
+    function pinSecurityFor(userId) {
+      const security = state.pinSecurity.get(userId);
+      if (security?.lockedUntil && security.lockedUntil <= Date.now()) {
+        state.pinSecurity.delete(userId);
+        return null;
+      }
+      return security || null;
+    }
+    function pinLockRemaining(userId) {
+      const security = pinSecurityFor(userId);
+      return security?.lockedUntil ? Math.max(0, Math.ceil((security.lockedUntil - Date.now()) / 1000)) : 0;
+    }
+    function pinLockMessage(userId) {
+      const remaining = pinLockRemaining(userId);
+      return remaining ? `PINを5回間違えたためロック中です。しばらくお待ちください（残り${remaining}秒）` : "";
+    }
+    function recordPinFailure(userId) {
+      if (!userId) return null;
+      const current = pinSecurityFor(userId) || { failures:0, lockedUntil:0 };
+      current.failures += 1;
+      if (current.failures >= PIN_FAILURE_LIMIT) {
+        current.failures = PIN_FAILURE_LIMIT;
+        current.lockedUntil = Date.now() + PIN_LOCK_DURATION_MS;
+      }
+      state.pinSecurity.set(userId,current);
+      return current;
+    }
+    function resetPinSecurity(userId) {
+      if (userId) state.pinSecurity.delete(userId);
+    }
+    function updatePinSecurityCountdowns() {
+      const expired = [];
+      state.pinSecurity.forEach((security,userId) => {
+        if (security.lockedUntil && security.lockedUntil <= Date.now()) {
+          state.pinSecurity.delete(userId);
+          expired.push(userId);
+        }
+      });
+      const loginUserId = state.loginStep === "pin" ? state.loginUserId : null;
+      if (loginUserId) {
+        const message = document.getElementById("pinLockMessage");
+        const remaining = pinLockRemaining(loginUserId);
+        if (message && remaining) message.textContent = pinLockMessage(loginUserId);
+        if (expired.includes(loginUserId)) {
+          state.pinError = "";
+          renderLogin();
+        }
+      }
+      const lockedUser = state.locked ? me() : null;
+      if (lockedUser) {
+        const message = document.getElementById("lockPinMessage");
+        const remaining = pinLockRemaining(lockedUser.id);
+        if (message && remaining) message.textContent = pinLockMessage(lockedUser.id);
+        if (expired.includes(lockedUser.id)) {
+          state.lockError = "";
+          renderLockScreen();
+        }
+      }
+      document.querySelectorAll("[data-pin-lock-countdown]").forEach(element => {
+        const remaining = pinLockRemaining(element.dataset.pinLockCountdown);
+        element.textContent = remaining ? `残り${remaining}秒` : "解除済み";
+      });
+      if (expired.length && me() && state.view === "admin" && !state.locked) renderApp({ preserveScroll:true });
+    }
     function renderLogin() {
       const root = document.getElementById("loginRoot");
       document.getElementById("shell").classList.add("hidden");
       document.getElementById("lockRoot").classList.add("hidden");
       root.classList.remove("hidden");
 
+      const requiresDeviceStep = state.loginStep === "device" || (state.loginCompanyId && !isDeviceAuthorized(state.loginCompanyId));
       const steps = [
         { id:"company", label:"企業ID" },
+        ...(requiresDeviceStep ? [{ id:"device", label:"端末認証" }] : []),
         { id:"user", label:"お名前" },
         { id:"pin", label:"PIN" }
       ];
       const stepIndex = steps.findIndex(s => s.id === state.loginStep);
-      const stepper = state.loginStep === "audience" ? "" : `<div class="stepper" aria-label="ログイン手順">${steps.map((s,i) => `<div class="step ${i < stepIndex ? "done" : ""} ${i === stepIndex ? "current" : ""}">${i+1}. ${s.label}</div>`).join("")}</div>`;
+      const stepper = state.loginStep === "audience" ? "" : `<div class="stepper" style="grid-template-columns:repeat(${steps.length},minmax(0,1fr))" aria-label="ログイン手順">${steps.map((s,i) => `<div class="step ${i < stepIndex ? "done" : ""} ${i === stepIndex ? "current" : ""}">${i+1}. ${s.label}</div>`).join("")}</div>`;
       const isFamilyLogin = state.loginAudience === "family";
 
       let body = "";
@@ -2336,6 +2469,22 @@
           <button class="primary-btn" id="companyNext" type="button" onclick="goUserStep()" disabled>
             次へ進む ${icon("arrow","icon icon-sm")}
           </button>`;
+      } else if (state.loginStep === "device") {
+        const c = companyById(state.loginCompanyId);
+        body = `
+          <button class="back-btn" type="button" onclick="backToCompany()">${icon("back","icon icon-sm")}企業IDに戻る</button>
+          <h1>この端末を認証</h1>
+          <p class="login-lead">${escapeHTML(c?.name || "施設")}から案内された施設パスワードを入力してください。初回認証後は、職員選択とPINだけでログインできます。</p>
+          ${state.deviceAuthMessage
+            ? `<div class="device-auth-success">${icon("check","icon icon-sm")}<span>${escapeHTML(state.deviceAuthMessage)}</span></div>`
+            : `<div class="device-auth-wrap ${state.devicePasswordError ? "shake" : ""}" id="deviceAuthWrap">
+                <label class="field-label" for="devicePassword">施設パスワード</label>
+                <input class="text-input" id="devicePassword" type="password" autocomplete="off" value="${escapeHTML(state.devicePassword)}"
+                  aria-describedby="devicePasswordError" oninput="state.devicePassword=this.value;state.devicePasswordError='';document.getElementById('devicePasswordError').textContent=''">
+                <div class="input-note pin-error" id="devicePasswordError" aria-live="assertive">${escapeHTML(state.devicePasswordError)}</div>
+                <button class="primary-btn" type="button" onclick="verifyDevicePassword()">この端末を認証する ${icon("arrow","icon icon-sm")}</button>
+              </div>`}
+          <p class="device-demo-note">デモのため、ページを再読み込みすると端末認証はリセットされます。</p>`;
       } else if (state.loginStep === "user") {
         const c = companyById(state.loginCompanyId);
         const users = loginUsers(c.id,state.loginAudience);
@@ -2351,8 +2500,10 @@
                 <span class="mini-role ${u.role === "family" ? "family" : ""}">${escapeHTML(u.roleLabel)}</span>
               </button>`).join("") || `<div class="empty">${isFamilyLogin ? "ご家族アカウント" : "職員アカウント"}がありません。</div>`}
           </div>`;
-      } else {
+      } else if (state.loginStep === "pin") {
         const u = userById(state.loginUserId);
+        const remaining = pinLockRemaining(u?.id);
+        const pinErrorText = remaining ? pinLockMessage(u?.id) : state.pinError;
         body = `
           <button class="back-btn" type="button" onclick="backToUsers()">${icon("back","icon icon-sm")}お名前の選択に戻る</button>
           <h1>${isFamilyLogin ? "確認用PINを入力" : "4桁のPINを入力"}</h1>
@@ -2361,17 +2512,17 @@
             <span class="avatar">${escapeHTML(initial(u.name))}</span>
             <span><strong>${escapeHTML(u.name)}</strong><small>${escapeHTML(u.roleLabel)}</small></span>
           </div>
-          <div class="pin-wrap ${state.pinError ? "shake" : ""}" id="pinWrap">
+          <div class="pin-wrap ${state.pinError && !remaining ? "shake" : ""}" id="pinWrap">
             <div class="pin-dots" aria-label="${state.pin.length}桁入力済み">
               ${[0,1,2,3].map(i => `<span class="pin-dot ${i < state.pin.length ? "filled" : ""}"></span>`).join("")}
             </div>
-            <div class="pin-error" aria-live="assertive">${escapeHTML(state.pinError)}</div>
+            <div class="pin-error ${remaining ? "pin-lock-note" : ""}" id="pinLockMessage" aria-live="assertive">${escapeHTML(pinErrorText)}</div>
           </div>
           <div class="keypad" aria-label="PINテンキー">
-            ${[1,2,3,4,5,6,7,8,9].map(n => `<button class="key" type="button" onclick="pressPin('${n}')" aria-label="${n}">${n}</button>`).join("")}
+            ${[1,2,3,4,5,6,7,8,9].map(n => `<button class="key" type="button" onclick="pressPin('${n}')" aria-label="${n}" ${remaining ? "disabled" : ""}>${n}</button>`).join("")}
             <button class="key blank" type="button" tabindex="-1" aria-hidden="true"></button>
-            <button class="key" type="button" onclick="pressPin('0')" aria-label="0">0</button>
-            <button class="key delete" type="button" onclick="deletePin()" aria-label="1桁消す">${icon("delete","icon")}</button>
+            <button class="key" type="button" onclick="pressPin('0')" aria-label="0" ${remaining ? "disabled" : ""}>0</button>
+            <button class="key delete" type="button" onclick="deletePin()" aria-label="1桁消す" ${remaining ? "disabled" : ""}>${icon("delete","icon")}</button>
           </div>`;
       }
       const familyNote = isFamilyLogin && state.loginStep !== "audience"
@@ -2393,11 +2544,12 @@
             ${familyNote}
           </div>
           ${qrLink}
-          <div class="demo-hint">デモ用: 企業ID himawari / sakura、PIN 0000</div>
+          <div class="demo-hint">デモ用: 企業ID himawari / sakura<br>施設パスワード himawari-demo / sakura-demo、PIN 0000</div>
           <div class="security-note">${icon("shield","icon icon-sm")}<span>記録は暗号化され、施設ごとに分離して安全に保管されます（デモ表示）</span></div>
           <a class="service-page-link" href="./index.html">サービス紹介ページへ</a>
         </section>`;
       if (state.loginStep === "company") setTimeout(() => document.getElementById("companyCode")?.focus(), 0);
+      if (state.loginStep === "device" && !state.deviceAuthMessage) setTimeout(() => document.getElementById("devicePassword")?.focus(), 0);
     }
 
     function chooseLoginAudience(audience) {
@@ -2406,6 +2558,9 @@
       state.loginStep = "company";
       state.loginCompanyId = null;
       state.loginUserId = null;
+      state.devicePassword = "";
+      state.devicePasswordError = "";
+      state.deviceAuthMessage = "";
       state.pin = "";
       state.pinError = "";
       renderLogin();
@@ -2415,6 +2570,9 @@
       state.loginAudience = null;
       state.loginCompanyId = null;
       state.loginUserId = null;
+      state.devicePassword = "";
+      state.devicePasswordError = "";
+      state.deviceAuthMessage = "";
       state.pin = "";
       state.pinError = "";
       renderLogin();
@@ -2423,6 +2581,9 @@
       const value = raw.trim().toLowerCase();
       const company = DB.companies.find(c => c.code === value);
       state.loginCompanyId = company?.id || null;
+      state.devicePassword = "";
+      state.devicePasswordError = "";
+      state.deviceAuthMessage = "";
       const result = document.getElementById("companyResult");
       const message = document.getElementById("companyMessage");
       const button = document.getElementById("companyNext");
@@ -2437,12 +2598,41 @@
     }
     function goUserStep() {
       if (!state.loginCompanyId || !["staff","family"].includes(state.loginAudience)) return;
-      state.loginStep = "user";
+      state.loginStep = isDeviceAuthorized(state.loginCompanyId) ? "user" : "device";
       renderLogin();
+    }
+    function verifyDevicePassword() {
+      const company = companyById(state.loginCompanyId);
+      if (!company || !["staff","family"].includes(state.loginAudience) || state.loginStep !== "device") return;
+      if (state.devicePassword === company.devicePassword) {
+        state.deviceAuthorizations.set(company.id, {
+          companyId:company.id,
+          deviceName:`この端末（${browserLabel()}）`,
+          authenticatedAt:new Date().toISOString()
+        });
+        state.devicePassword = "";
+        state.devicePasswordError = "";
+        state.deviceAuthMessage = "この端末を認証しました";
+        renderLogin();
+        setTimeout(() => {
+          if (state.loginStep !== "device" || state.loginCompanyId !== company.id) return;
+          state.deviceAuthMessage = "";
+          state.loginStep = "user";
+          renderLogin();
+        }, 700);
+      } else {
+        state.devicePassword = "";
+        state.devicePasswordError = "施設パスワードが違います。もう一度入力してください。";
+        renderLogin();
+        setTimeout(() => document.getElementById("deviceAuthWrap")?.classList.remove("shake"), 420);
+      }
     }
     function backToCompany() {
       state.loginStep = "company";
       state.loginUserId = null;
+      state.devicePassword = "";
+      state.devicePasswordError = "";
+      state.deviceAuthMessage = "";
       state.pin = "";
       state.pinError = "";
       renderLogin();
@@ -2451,6 +2641,12 @@
       const u = userById(id);
       const matchesAudience = state.loginAudience === "family" ? u?.role === "family" : u?.role !== "family";
       if (!u || u.companyId !== state.loginCompanyId || !matchesAudience) return;
+      if (!isDeviceAuthorized(u.companyId)) {
+        state.loginStep = "device";
+        state.loginUserId = null;
+        renderLogin();
+        return;
+      }
       state.loginUserId = id;
       state.loginStep = "pin";
       state.pin = "";
@@ -2571,22 +2767,36 @@
       modal.setAttribute("aria-hidden","true");
     }
     function pressPin(digit) {
-      if (state.loginStep !== "pin" || state.pin.length >= 4) return;
+      if (state.loginStep !== "pin" || state.pin.length >= 4 || pinLockRemaining(state.loginUserId)) return;
       state.pinError = "";
       state.pin += digit;
       renderLogin();
       if (state.pin.length === 4) setTimeout(verifyPin, 120);
     }
     function deletePin() {
-      if (state.loginStep !== "pin") return;
+      if (state.loginStep !== "pin" || pinLockRemaining(state.loginUserId)) return;
       state.pin = state.pin.slice(0,-1);
       state.pinError = "";
       renderLogin();
     }
     function verifyPin() {
       const u = userById(state.loginUserId);
+      if (u && !isDeviceAuthorized(u.companyId)) {
+        state.pin = "";
+        state.pinError = "";
+        state.loginStep = "device";
+        renderLogin();
+        return;
+      }
+      if (!u || pinLockRemaining(u.id)) {
+        state.pin = "";
+        state.pinError = "";
+        renderLogin();
+        return;
+      }
       const audienceMatches = state.loginAudience === "family" ? u?.role === "family" : state.loginAudience === "staff" && u?.role !== "family";
       if (u && audienceMatches && state.pin === u.pin) {
+        resetPinSecurity(u.id);
         state.userId = u.id;
         state.view = u.role === "family" ? "renraku" : "home";
         state.viewHistory = [];
@@ -2614,10 +2824,13 @@
         showToast(`${u.name}さんでログインしました`);
         maybeOpenGuide(u);
       } else {
+        const security = recordPinFailure(u?.id);
         state.pin = "";
-        state.pinError = "PINが違います。もう一度入力してください。";
+        state.pinError = security?.lockedUntil
+          ? ""
+          : `PINが違います。もう一度入力してください。（あと${Math.max(0,PIN_FAILURE_LIMIT - (security?.failures || 0))}回でロック）`;
         renderLogin();
-        setTimeout(() => document.getElementById("pinWrap")?.classList.remove("shake"), 420);
+        if (!security?.lockedUntil) setTimeout(() => document.getElementById("pinWrap")?.classList.remove("shake"), 420);
       }
     }
     function resetInactivityTimer() {
@@ -2646,6 +2859,8 @@
     function renderLockScreen() {
       const u = me();
       if (!u) { renderLogin(); return; }
+      const remaining = pinLockRemaining(u.id);
+      const lockErrorText = remaining ? pinLockMessage(u.id) : state.lockError;
       document.getElementById("loginRoot").classList.add("hidden");
       document.getElementById("shell").classList.add("hidden");
       const root = document.getElementById("lockRoot");
@@ -2664,38 +2879,46 @@
               <span class="avatar">${escapeHTML(initial(u.name))}</span>
               <span><strong>${escapeHTML(u.name)}</strong><small>${escapeHTML(u.roleLabel)}</small></span>
             </div>
-            <div class="pin-wrap ${state.lockError ? "shake" : ""}" id="lockPinWrap">
+            <div class="pin-wrap ${state.lockError && !remaining ? "shake" : ""}" id="lockPinWrap">
               <div class="pin-dots" aria-label="${state.lockPin.length}桁入力済み">
                 ${[0,1,2,3].map(i => `<span class="pin-dot ${i < state.lockPin.length ? "filled" : ""}"></span>`).join("")}
               </div>
-              <div class="pin-error" aria-live="assertive">${escapeHTML(state.lockError)}</div>
+              <div class="pin-error ${remaining ? "pin-lock-note" : ""}" id="lockPinMessage" aria-live="assertive">${escapeHTML(lockErrorText)}</div>
             </div>
             <div class="keypad" aria-label="ロック解除PINテンキー">
-              ${[1,2,3,4,5,6,7,8,9].map(n => `<button class="key" type="button" onclick="pressLockPin('${n}')" aria-label="${n}">${n}</button>`).join("")}
+              ${[1,2,3,4,5,6,7,8,9].map(n => `<button class="key" type="button" onclick="pressLockPin('${n}')" aria-label="${n}" ${remaining ? "disabled" : ""}>${n}</button>`).join("")}
               <button class="key blank" type="button" tabindex="-1" aria-hidden="true"></button>
-              <button class="key" type="button" onclick="pressLockPin('0')" aria-label="0">0</button>
-              <button class="key delete" type="button" onclick="deleteLockPin()" aria-label="1桁消す">${icon("delete","icon")}</button>
+              <button class="key" type="button" onclick="pressLockPin('0')" aria-label="0" ${remaining ? "disabled" : ""}>0</button>
+              <button class="key delete" type="button" onclick="deleteLockPin()" aria-label="1桁消す" ${remaining ? "disabled" : ""}>${icon("delete","icon")}</button>
             </div>
           </div>
           <div class="security-note">${icon("shield","icon icon-sm")}<span>操作を再開するには、ご本人のPINが必要です</span></div>
         </section>`;
     }
     function pressLockPin(digit) {
-      if (!state.locked || state.lockPin.length >= 4) return;
+      const u = me();
+      if (!state.locked || state.lockPin.length >= 4 || pinLockRemaining(u?.id)) return;
       state.lockError = "";
       state.lockPin += digit;
       renderLockScreen();
       if (state.lockPin.length === 4) setTimeout(verifyLockPin, 120);
     }
     function deleteLockPin() {
-      if (!state.locked) return;
+      if (!state.locked || pinLockRemaining(me()?.id)) return;
       state.lockPin = state.lockPin.slice(0,-1);
       state.lockError = "";
       renderLockScreen();
     }
     function verifyLockPin() {
       const u = me();
+      if (!u || pinLockRemaining(u.id)) {
+        state.lockPin = "";
+        state.lockError = "";
+        renderLockScreen();
+        return;
+      }
       if (u && state.lockPin === u.pin) {
+        resetPinSecurity(u.id);
         const returnView = allowedViews().includes(state.lockedView) ? state.lockedView : (u.role === "family" ? "renraku" : "home");
         const returnScroll = state.lockedScrollSnapshot || { x:0, y:state.lockedScrollY, containers:{} };
         state.locked = false;
@@ -2709,10 +2932,13 @@
         resetInactivityTimer();
         showToast("ロックを解除しました");
       } else {
+        const security = recordPinFailure(u?.id);
         state.lockPin = "";
-        state.lockError = "PINが違います。もう一度入力してください。";
+        state.lockError = security?.lockedUntil
+          ? ""
+          : `PINが違います。もう一度入力してください。（あと${Math.max(0,PIN_FAILURE_LIMIT - (security?.failures || 0))}回でロック）`;
         renderLockScreen();
-        setTimeout(() => document.getElementById("lockPinWrap")?.classList.remove("shake"), 420);
+        if (!security?.lockedUntil) setTimeout(() => document.getElementById("lockPinWrap")?.classList.remove("shake"), 420);
       }
     }
     function logout() {
@@ -2733,6 +2959,9 @@
       state.loginAudience = null;
       state.loginCompanyId = null;
       state.loginUserId = null;
+      state.devicePassword = "";
+      state.devicePasswordError = "";
+      state.deviceAuthMessage = "";
       state.pin = "";
       state.pinError = "";
       document.getElementById("lockRoot").classList.add("hidden");
@@ -3996,6 +4225,47 @@
       renderApp({ preserveScroll:true });
       showSuccess("この施設の勤務時間テンプレートを保存しました");
     }
+    function unlockUserPin(userId) {
+      const actor = me();
+      const target = userById(userId);
+      if (!hasManagementAccess(actor) || !target || target.companyId !== actor.companyId) return;
+      resetPinSecurity(target.id);
+      renderApp({ preserveScroll:true });
+      showSuccess(`${target.name}さんのPINロックを解除しました`);
+    }
+    function revokeCurrentDeviceAuthorization() {
+      const actor = me();
+      if (!hasManagementAccess(actor)) return;
+      state.deviceAuthorizations.delete(actor.companyId);
+      renderApp({ preserveScroll:true });
+      showSuccess("この端末の認証を解除しました。次回ログイン時に施設パスワードが必要です");
+    }
+    function renderSecurityAdminSections(actor) {
+      const lockedUsers = DB.users.filter(user => user.companyId === actor.companyId && pinLockRemaining(user.id));
+      const authorization = deviceAuthorizationFor(actor.companyId);
+      return `
+        <section aria-labelledby="pinSecurityHeading">
+          <div class="section-title"><span id="pinSecurityHeading">PINロック管理</span><small>${lockedUsers.length ? `${lockedUsers.length}名がロック中` : "ロックなし"}</small></div>
+          <div class="security-admin-grid">
+            ${lockedUsers.length ? lockedUsers.map(user => `<div class="card security-admin-card">
+              <div class="security-admin-row">
+                <div class="security-admin-copy"><strong>${escapeHTML(user.name)}</strong><span>PINを5回間違えたためロック中｜<span data-pin-lock-countdown="${user.id}">残り${pinLockRemaining(user.id)}秒</span></span></div>
+                <button class="security-admin-button" type="button" onclick="unlockUserPin('${user.id}')">今すぐ解除</button>
+              </div>
+            </div>`).join("") : `<p class="security-admin-empty">現在、PINロック中のアカウントはありません。</p>`}
+          </div>
+        </section>
+        <section aria-labelledby="deviceSecurityHeading">
+          <div class="section-title"><span id="deviceSecurityHeading">認証済み端末</span><small>この施設</small></div>
+          ${authorization ? `<div class="card security-admin-card">
+            <div class="security-admin-row">
+              <div class="security-admin-copy"><strong>${escapeHTML(authorization.deviceName)}</strong><span>認証日時：${escapeHTML(formattedDateTime(authorization.authenticatedAt))}</span></div>
+              <button class="security-admin-button" type="button" onclick="revokeCurrentDeviceAuthorization()">認証を解除</button>
+            </div>
+          </div>` : `<p class="security-admin-empty">この端末の施設認証は解除されています。</p>`}
+          <p class="security-admin-note">本サービスでは複数端末の一覧表示・遠隔解除に対応します。デモでは現在操作中の端末のみを表示します。</p>
+        </section>`;
+    }
     function renderAdmin() {
       const u = me();
       if (!hasManagementAccess(u)) return "";
@@ -4021,6 +4291,7 @@
       return `
         ${pageHead("ADMINISTRATION","管理","施設のアカウントを確認・管理します。","admin")}
         <div class="info-box">${icon("info","icon icon-sm")}<span>職員・ご家族の追加、氏名・役職・PINの変更、アカウント削除ができます。変更内容はこのデモを再読み込みすると元に戻ります。</span></div>
+        ${renderSecurityAdminSections(u)}
         <div class="section-title"><span>職員アカウント</span><small>${staff.length}名</small></div>
         <div class="account-grid">${staff.map(row).join("")}</div>
         <button class="invite-btn" type="button" onclick="openAccountModal('staff')">${icon("plus","icon icon-sm")}職員を追加</button>
@@ -4824,6 +5095,11 @@
         else return;
         return;
       }
+      if (state.loginStep === "device" && !state.userId && event.key === "Enter") {
+        event.preventDefault();
+        verifyDevicePassword();
+        return;
+      }
       if (state.loginStep !== "pin" || state.userId) return;
       if (/^\d$/.test(event.key)) { event.preventDefault(); pressPin(event.key); }
       if (event.key === "Backspace") { event.preventDefault(); deletePin(); }
@@ -4832,6 +5108,7 @@
       document.addEventListener(eventName, resetInactivityTimer, { passive:true, capture:true });
     });
     setInterval(updateClock, 1000);
+    setInterval(updatePinSecurityCountdowns, 1000);
     renderLogin();
   </script>
 </body>

@@ -232,7 +232,6 @@
     .price-points .icon { width:18px; height:18px; flex:none; margin-top:2px; }
     .price-side { display:grid; gap:12px; }
     .price-card { padding:22px; border:1px solid var(--line); border-radius:20px; background:#fbfdfc; }
-    .price-card.option { border-color:#dfc79e; background:#fffaf1; }
     .price-card span { color:var(--brand); font-size:10px; font-weight:900; letter-spacing:.1em; }
     .price-card h3 { margin:5px 0 0; font-size:20px; }
     .price-card strong { display:block; margin-top:8px; color:var(--brand-dark); font-size:27px; }
@@ -360,6 +359,7 @@
               <strong>デモログイン情報</strong>
               <div class="demo-credentials">
                 <span><b>企業ID</b><code>himawari</code> または <code>sakura</code></span>
+                <span><b>施設パスワード</b><code>himawari-demo</code> / <code>sakura-demo</code></span>
                 <span><b>PIN</b><code>0000</code></span>
               </div>
               <small>施設長・職員・ご家族、それぞれの画面をお試しいただけます。</small>
@@ -429,8 +429,7 @@
             </ul>
           </article>
           <div class="price-side">
-            <article class="price-card"><span>INITIAL COST</span><h3>初期費用</h3><strong>0円</strong><p>施設IDの発行と職員登録だけで、当日から使い始められます。</p></article>
-            <article class="price-card option"><span>OPTION</span><h3>導入おまかせパック</h3><strong>30,000円</strong><p>職員名簿・利用者名簿を送るだけ。登録から初期設定までまとめて代行します。</p></article>
+            <article class="price-card"><span>INITIAL COST</span><h3>初期費用</h3><strong>0円</strong><p>施設IDを発行後、管理画面から職員を登録して当日から使い始められます。</p></article>
           </div>
         </div>
       </div>
@@ -441,8 +440,8 @@
         <p class="section-kicker">START IN 3 STEPS</p>
         <h2 class="section-heading">最短、当日から。<br>3ステップで利用開始。</h2>
         <div class="flow-grid">
-          <article class="flow-card"><h3>お問い合わせ</h3><p>利用施設を確認し、専用の企業ID・施設IDを発行します。</p></article>
-          <article class="flow-card"><h3>職員を登録</h3><p>管理画面やCSVでセルフ登録。おまかせパックなら当社が代行します。</p></article>
+          <article class="flow-card"><h3>お問い合わせ</h3><p>利用施設を確認し、専用の施設IDを発行します。</p></article>
+          <article class="flow-card"><h3>職員を登録</h3><p>管理画面から職員を登録します。CSVによる一括登録にも対応しています。</p></article>
           <article class="flow-card"><h3>当日から利用開始</h3><p>タブレットやスマートフォンでログインし、その日から記録を始められます。</p></article>
         </div>
       </div>
@@ -458,7 +457,7 @@
           <details class="faq-item"><summary>ご家族はどのようにログインしますか？</summary><div class="faq-answer">本サービスでは、ご家族ごとにメールアドレスとパスワードを発行し、担当する利用者様の連絡帳だけを表示する予定です。デモ版は4桁PIN方式です。</div></details>
           <details class="faq-item"><summary>解約時に記録データを受け取れますか？</summary><div class="faq-answer">はい。保存が必要な記録をCSVやPDF等の所定形式でお渡しする運用を予定しています。具体的な対象と形式は契約条件でご案内します。</div></details>
           <details class="faq-item"><summary>対応ブラウザを教えてください。</summary><div class="faq-answer">最新版のGoogle ChromeとMicrosoft Edgeを推奨します。Safariを含む主要ブラウザへの対応範囲は正式リリース時にお知らせします。</div></details>
-          <details class="faq-item"><summary>操作が分からない場合のサポートはありますか？</summary><div class="faq-answer">メール・LINEでのサポート、短い操作動画をご用意する予定です。導入おまかせパックでは初期登録も代行します。</div></details>
+          <details class="faq-item"><summary>操作が分からない場合のサポートはありますか？</summary><div class="faq-answer">メールサポートをご利用いただけます（操作動画・導入ガイドあり）。</div></details>
           <details class="faq-item"><summary>デモ版と本サービスの違いは何ですか？</summary><div class="faq-answer">デモ版の変更内容は再読み込みすると消えます。本サービスではデータを継続保存し、ご家族認証や通知、監査ログなどを本番向けに強化します。</div></details>
           <details class="faq-item"><summary>職員が多くても料金は変わりませんか？</summary><div class="faq-answer">基本プランは施設単位で、職員・ご家族アカウントは無制限です。複数施設でのご利用は別途ご相談ください。</div></details>
         </div>
