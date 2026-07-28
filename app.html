@@ -196,6 +196,8 @@
     .login-entry-arrow { color: var(--brand-dark); }
     .login-entry-card.family .login-entry-arrow { color: var(--family); }
     .family-login-note { display: flex; gap: 7px; margin-top: 15px; padding: 10px 11px; color: #604a78; border: 1px solid #ddd0e9; border-radius: 11px; background: #f8f4fb; font-size: 10.5px; line-height: 1.6; }
+    .credentials-stack { display: grid; gap: 13px; }
+    .credential-field.shake { animation: shake .38s ease; }
     .field-label { display: block; margin-bottom: 7px; font-weight: 700; }
     .text-input {
       width: 100%;
@@ -208,6 +210,9 @@
       font-size: 16px;
     }
     .text-input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(23,107,93,.12); }
+    .text-input.authenticated,
+    .text-input:disabled { color: #72817c; border-color: #d5dfdb; background: #f2f5f3; opacity: 1; }
+    .device-auth-inline { display: flex; min-height: 24px; align-items: center; gap: 5px; margin: 5px 2px 0; color: var(--brand-dark); font-size: 10.5px; font-weight: 700; }
     .company-result {
       display: flex;
       align-items: center;
@@ -363,20 +368,6 @@
     .pin-dot.filled { border-color: var(--brand); background: var(--brand); transform: scale(1.08); }
     .pin-wrap.shake { animation: shake .38s ease; }
     .pin-error { min-height: 24px; margin: -7px 0 6px; color: var(--important); font-size: 12.5px; font-weight: 700; text-align: center; }
-    .device-auth-wrap.shake { animation: shake .38s ease; }
-    .device-auth-success {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin: 12px 0;
-      padding: 11px 12px;
-      color: var(--brand-dark);
-      border: 1px solid #bcd8cf;
-      border-radius: 12px;
-      background: var(--brand-soft);
-      font-size: 13px;
-      font-weight: 800;
-    }
     .device-demo-note { margin: 8px 2px 0; color: var(--muted); font-size: 10.5px; line-height: 1.55; text-align: center; }
     .pin-lock-note { min-height: 38px; margin-top: -3px; line-height: 1.55; }
     .keypad {
@@ -2262,11 +2253,12 @@
       view: "home",
       loginStep: "audience",
       loginAudience: null,
+      loginCompanyCode: "",
       loginCompanyId: null,
       loginUserId: null,
+      companyError: "",
       devicePassword: "",
       devicePasswordError: "",
-      deviceAuthMessage: "",
       deviceAuthorizations: new Map(),
       pin: "",
       pinError: "",
@@ -2446,10 +2438,8 @@
       document.getElementById("lockRoot").classList.add("hidden");
       root.classList.remove("hidden");
 
-      const requiresDeviceStep = state.loginStep === "device" || (state.loginCompanyId && !isDeviceAuthorized(state.loginCompanyId));
       const steps = [
         { id:"company", label:"企業ID" },
-        ...(requiresDeviceStep ? [{ id:"device", label:"端末認証" }] : []),
         { id:"user", label:"お名前" },
         { id:"pin", label:"PIN" }
       ];
@@ -2475,34 +2465,35 @@
             </button>
           </div>`;
       } else if (state.loginStep === "company") {
+        const c = companyById(state.loginCompanyId);
+        const authorized = isDeviceAuthorized(c?.id);
         body = `
           <button class="back-btn" type="button" onclick="backToAudience()">${icon("back","icon icon-sm")}入口選択に戻る</button>
           <h1>${isFamilyLogin ? "ご利用施設を確認します" : "勤務先を確認します"}</h1>
-          <p class="login-lead">${isFamilyLogin ? "施設から案内された企業IDを入力してください。" : "勤務先から案内された企業IDを入力してください。"}</p>
-          <label class="field-label" for="companyCode">企業ID</label>
-          <input class="text-input" id="companyCode" type="text" inputmode="latin" autocomplete="off" autocapitalize="none"
-            placeholder="例：himawari" aria-describedby="companyMessage" oninput="checkCompany(this.value)">
-          <div id="companyResult"></div>
-          <div class="input-note" id="companyMessage" aria-live="polite"></div>
-          <button class="primary-btn" id="companyNext" type="button" onclick="goUserStep()" disabled>
+          <p class="login-lead">企業IDと施設パスワードを入力してください。</p>
+          <div class="credentials-stack">
+            <div class="credential-field ${state.companyError ? "shake" : ""}" id="companyField">
+              <label class="field-label" for="companyCode">企業ID</label>
+              <input class="text-input" id="companyCode" type="text" inputmode="latin" autocomplete="off" autocapitalize="none"
+                value="${escapeHTML(state.loginCompanyCode)}" placeholder="例：himawari" aria-describedby="companyMessage" oninput="checkCompany(this.value)">
+              <div id="companyResult">${c ? `<div class="company-result"><span class="result-icon">${icon("building")}</span><span><strong>${escapeHTML(c.name)}</strong><span>${escapeHTML(c.type)}</span></span></div>` : ""}</div>
+              <div class="input-note" id="companyMessage" aria-live="polite">${escapeHTML(state.companyError)}</div>
+            </div>
+            <div class="credential-field ${state.devicePasswordError ? "shake" : ""}" id="devicePasswordField">
+              <label class="field-label" for="devicePassword">施設パスワード</label>
+              <input class="text-input ${authorized ? "authenticated" : ""}" id="devicePassword" type="password" autocomplete="off"
+                value="${authorized ? "" : escapeHTML(state.devicePassword)}"
+                placeholder="${authorized ? "この端末は認証済みのため入力不要" : "施設から案内されたパスワード"}"
+                aria-describedby="devicePasswordError deviceAuthStatus" ${authorized ? "disabled" : ""}
+                oninput="state.devicePassword=this.value;state.devicePasswordError='';document.getElementById('devicePasswordError').textContent='';document.getElementById('devicePasswordField').classList.remove('shake')">
+              <div class="input-note pin-error" id="devicePasswordError" aria-live="assertive">${escapeHTML(state.devicePasswordError)}</div>
+              <div class="device-auth-inline" id="deviceAuthStatus">${authorized ? `${icon("check","icon icon-sm")}この端末は認証済みです` : ""}</div>
+            </div>
+          </div>
+          <p class="device-demo-note">デモのため、ページを再読み込みすると端末認証はリセットされます。</p>
+          <button class="primary-btn" id="companyNext" type="button" onclick="goUserStep()" ${state.loginCompanyCode.trim() ? "" : "disabled"}>
             次へ進む ${icon("arrow","icon icon-sm")}
           </button>`;
-      } else if (state.loginStep === "device") {
-        const c = companyById(state.loginCompanyId);
-        body = `
-          <button class="back-btn" type="button" onclick="backToCompany()">${icon("back","icon icon-sm")}企業IDに戻る</button>
-          <h1>この端末を認証</h1>
-          <p class="login-lead">${escapeHTML(c?.name || "施設")}から案内された施設パスワードを入力してください。初回認証後は、職員選択とPINだけでログインできます。</p>
-          ${state.deviceAuthMessage
-            ? `<div class="device-auth-success">${icon("check","icon icon-sm")}<span>${escapeHTML(state.deviceAuthMessage)}</span></div>`
-            : `<div class="device-auth-wrap ${state.devicePasswordError ? "shake" : ""}" id="deviceAuthWrap">
-                <label class="field-label" for="devicePassword">施設パスワード</label>
-                <input class="text-input" id="devicePassword" type="password" autocomplete="off" value="${escapeHTML(state.devicePassword)}"
-                  aria-describedby="devicePasswordError" oninput="state.devicePassword=this.value;state.devicePasswordError='';document.getElementById('devicePasswordError').textContent=''">
-                <div class="input-note pin-error" id="devicePasswordError" aria-live="assertive">${escapeHTML(state.devicePasswordError)}</div>
-                <button class="primary-btn" type="button" onclick="verifyDevicePassword()">この端末を認証する ${icon("arrow","icon icon-sm")}</button>
-              </div>`}
-          <p class="device-demo-note">デモのため、ページを再読み込みすると端末認証はリセットされます。</p>`;
       } else if (state.loginStep === "user") {
         const c = companyById(state.loginCompanyId);
         const users = loginUsers(c.id,state.loginAudience);
@@ -2567,18 +2558,18 @@
           <a class="service-page-link" href="./index.html">サービス紹介ページへ</a>
         </section>`;
       if (state.loginStep === "company") setTimeout(() => document.getElementById("companyCode")?.focus(), 0);
-      if (state.loginStep === "device" && !state.deviceAuthMessage) setTimeout(() => document.getElementById("devicePassword")?.focus(), 0);
     }
 
     function chooseLoginAudience(audience) {
       if (!["staff","family"].includes(audience)) return;
       state.loginAudience = audience;
       state.loginStep = "company";
+      state.loginCompanyCode = "";
       state.loginCompanyId = null;
       state.loginUserId = null;
+      state.companyError = "";
       state.devicePassword = "";
       state.devicePasswordError = "";
-      state.deviceAuthMessage = "";
       state.pin = "";
       state.pinError = "";
       renderLogin();
@@ -2586,11 +2577,12 @@
     function backToAudience() {
       state.loginStep = "audience";
       state.loginAudience = null;
+      state.loginCompanyCode = "";
       state.loginCompanyId = null;
       state.loginUserId = null;
+      state.companyError = "";
       state.devicePassword = "";
       state.devicePasswordError = "";
-      state.deviceAuthMessage = "";
       state.pin = "";
       state.pinError = "";
       renderLogin();
@@ -2598,59 +2590,82 @@
     function checkCompany(raw) {
       const value = raw.trim().toLowerCase();
       const company = DB.companies.find(c => c.code === value);
+      const previousCompanyId = state.loginCompanyId;
+      state.loginCompanyCode = raw;
       state.loginCompanyId = company?.id || null;
-      state.devicePassword = "";
+      state.companyError = "";
+      if (previousCompanyId !== state.loginCompanyId) state.devicePassword = "";
       state.devicePasswordError = "";
-      state.deviceAuthMessage = "";
       const result = document.getElementById("companyResult");
       const message = document.getElementById("companyMessage");
       const button = document.getElementById("companyNext");
-      button.disabled = !company;
+      const password = document.getElementById("devicePassword");
+      const passwordError = document.getElementById("devicePasswordError");
+      const authStatus = document.getElementById("deviceAuthStatus");
+      const authorized = isDeviceAuthorized(company?.id);
+      button.disabled = !value;
+      document.getElementById("companyField")?.classList.remove("shake");
+      document.getElementById("devicePasswordField")?.classList.remove("shake");
       if (company) {
         result.innerHTML = `<div class="company-result"><span class="result-icon">${icon("building")}</span><span><strong>${escapeHTML(company.name)}</strong><span>${escapeHTML(company.type)}</span></span></div>`;
         message.textContent = "";
       } else {
         result.innerHTML = "";
-        message.textContent = value.length >= 3 ? "一致する施設が見つかりません。" : "";
+        message.textContent = value.length >= 3 ? "企業IDが違います。入力内容を確認してください。" : "";
       }
+      if (password) {
+        password.disabled = authorized;
+        password.value = authorized ? "" : state.devicePassword;
+        password.placeholder = authorized ? "この端末は認証済みのため入力不要" : "施設から案内されたパスワード";
+        password.classList.toggle("authenticated", authorized);
+      }
+      if (passwordError) passwordError.textContent = "";
+      if (authStatus) authStatus.innerHTML = authorized ? `${icon("check","icon icon-sm")}この端末は認証済みです` : "";
     }
     function goUserStep() {
-      if (!state.loginCompanyId || !["staff","family"].includes(state.loginAudience)) return;
-      state.loginStep = isDeviceAuthorized(state.loginCompanyId) ? "user" : "device";
-      renderLogin();
-    }
-    function verifyDevicePassword() {
-      const company = companyById(state.loginCompanyId);
-      if (!company || !["staff","family"].includes(state.loginAudience) || state.loginStep !== "device") return;
-      if (state.devicePassword === company.devicePassword) {
+      if (!["staff","family"].includes(state.loginAudience) || state.loginStep !== "company") return;
+      const code = state.loginCompanyCode.trim().toLowerCase();
+      const company = DB.companies.find(candidate => candidate.code === code);
+      state.loginCompanyId = company?.id || null;
+      state.companyError = "";
+      state.devicePasswordError = "";
+      if (!company) {
+        state.companyError = code ? "企業IDが違います。入力内容を確認してください。" : "企業IDを入力してください。";
+        renderLogin();
+        setTimeout(() => document.getElementById("companyField")?.classList.remove("shake"), 420);
+        return;
+      }
+      if (!isDeviceAuthorized(company.id)) {
+        if (!state.devicePassword) {
+          state.devicePasswordError = "施設パスワードを入力してください。";
+          renderLogin();
+          setTimeout(() => document.getElementById("devicePasswordField")?.classList.remove("shake"), 420);
+          return;
+        }
+        if (state.devicePassword !== company.devicePassword) {
+          state.devicePassword = "";
+          state.devicePasswordError = "施設パスワードが違います。入力内容を確認してください。";
+          renderLogin();
+          setTimeout(() => document.getElementById("devicePasswordField")?.classList.remove("shake"), 420);
+          return;
+        }
         state.deviceAuthorizations.set(company.id, {
           companyId:company.id,
           deviceName:`この端末（${browserLabel()}）`,
           authenticatedAt:new Date().toISOString()
         });
-        state.devicePassword = "";
-        state.devicePasswordError = "";
-        state.deviceAuthMessage = "この端末を認証しました";
-        renderLogin();
-        setTimeout(() => {
-          if (state.loginStep !== "device" || state.loginCompanyId !== company.id) return;
-          state.deviceAuthMessage = "";
-          state.loginStep = "user";
-          renderLogin();
-        }, 700);
-      } else {
-        state.devicePassword = "";
-        state.devicePasswordError = "施設パスワードが違います。もう一度入力してください。";
-        renderLogin();
-        setTimeout(() => document.getElementById("deviceAuthWrap")?.classList.remove("shake"), 420);
       }
+      state.devicePassword = "";
+      state.devicePasswordError = "";
+      state.loginStep = "user";
+      renderLogin();
     }
     function backToCompany() {
       state.loginStep = "company";
       state.loginUserId = null;
+      state.companyError = "";
       state.devicePassword = "";
       state.devicePasswordError = "";
-      state.deviceAuthMessage = "";
       state.pin = "";
       state.pinError = "";
       renderLogin();
@@ -2660,8 +2675,9 @@
       const matchesAudience = state.loginAudience === "family" ? u?.role === "family" : u?.role !== "family";
       if (!u || u.companyId !== state.loginCompanyId || !matchesAudience) return;
       if (!isDeviceAuthorized(u.companyId)) {
-        state.loginStep = "device";
+        state.loginStep = "company";
         state.loginUserId = null;
+        state.devicePasswordError = "施設パスワードを入力してください。";
         renderLogin();
         return;
       }
@@ -2802,7 +2818,8 @@
       if (u && !isDeviceAuthorized(u.companyId)) {
         state.pin = "";
         state.pinError = "";
-        state.loginStep = "device";
+        state.loginStep = "company";
+        state.devicePasswordError = "施設パスワードを入力してください。";
         renderLogin();
         return;
       }
@@ -2975,11 +2992,12 @@
       state.lockError = "";
       state.loginStep = "audience";
       state.loginAudience = null;
+      state.loginCompanyCode = "";
       state.loginCompanyId = null;
       state.loginUserId = null;
+      state.companyError = "";
       state.devicePassword = "";
       state.devicePasswordError = "";
-      state.deviceAuthMessage = "";
       state.pin = "";
       state.pinError = "";
       document.getElementById("lockRoot").classList.add("hidden");
@@ -5192,9 +5210,9 @@
         else return;
         return;
       }
-      if (state.loginStep === "device" && !state.userId && event.key === "Enter") {
+      if (state.loginStep === "company" && !state.userId && event.key === "Enter") {
         event.preventDefault();
-        verifyDevicePassword();
+        goUserStep();
         return;
       }
       if (state.loginStep !== "pin" || state.userId) return;
