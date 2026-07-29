@@ -780,25 +780,15 @@
     }
     .punch-btn.out { color: var(--brand-dark); border: 1.5px solid var(--brand); background: #fff; }
     .punch-btn:disabled { color: #8b9994; border-color: #d7dfdc; background: #e7ecea; cursor: not-allowed; }
-    .punch-overtime {
+    .punch-btn.overtime {
       grid-column: 1 / -1;
-      display: grid;
-      min-height: 58px;
-      grid-template-columns: auto auto 1fr;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 14px;
-      color: var(--muted);
-      border: 1.5px solid var(--line);
-      border-radius: 16px;
-      background: #f7faf9;
-      text-align: left;
+      color: #9a430d;
+      border: 1.5px solid #d8874e;
+      background: #fff3e9;
     }
-    .punch-overtime > span { font-size: 13px; font-weight: 800; }
-    .punch-overtime strong { color: var(--ink); font-size: 20px; font-variant-numeric: tabular-nums; }
-    .punch-overtime small { justify-self: end; color: var(--subtle); font-size: 10px; }
-    .punch-overtime.positive { color: var(--incident); border-color: #e8b58d; background: #fff3e9; }
-    .punch-overtime.positive strong { color: var(--incident); }
+    .punch-btn.overtime:not(:disabled):hover,
+    .punch-btn.overtime:not(:disabled):active { background: #ffe5d1; }
+    .punch-btn.overtime:disabled { color: #8b9994; border-color: #d7dfdc; background: #e7ecea; }
     .punch-help { margin: -5px 15px 15px; color: var(--muted); font-size: 10.5px; text-align: center; }
     .attendance-row { display: grid; grid-template-columns: 42px minmax(0,1fr) auto; gap: 10px; align-items: center; }
     .attendance-person-btn {
@@ -2077,16 +2067,7 @@
       .vital-grid { grid-template-columns: repeat(5,1fr); }
       .health-record-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
       .punch-actions { grid-template-columns: 1fr 1fr 1fr; }
-      .punch-overtime {
-        grid-column: auto;
-        display: flex;
-        min-height: 74px;
-        flex-direction: column;
-        justify-content: center;
-        gap: 1px;
-        text-align: center;
-      }
-      .punch-overtime small { justify-self: auto; }
+      .punch-btn.overtime { grid-column: auto; }
     }
     @media (min-width: 1040px) {
       body { padding: 24px; }
@@ -3447,17 +3428,35 @@
     function attendanceDayCount(records) {
       return new Set(records.filter(record => record?.start).map(record => record.date)).size;
     }
+    function isOvertimeAttendance(record) {
+      return record?.kind === "overtime";
+    }
+    function attendanceKindLabel(record) {
+      return isOvertimeAttendance(record) ? "時間外勤務" : "通常勤務";
+    }
+    function attendanceRoundLabel(record) {
+      return `${attendanceRoundNumber(record)}回目${isOvertimeAttendance(record) ? "・時間外" : ""}`;
+    }
+    function completedRegularAttendanceForOvertime(userId) {
+      const endedToday = attendanceEndedTodayFor(userId);
+      return attendanceRecordsForDate(userId).some(record => !isOvertimeAttendance(record) && Boolean(record.end))
+        || Boolean(endedToday?.end && !isOvertimeAttendance(endedToday));
+    }
     function renderKintai() {
       const u = me();
       const myRecords = attendanceRecordsForDate(u.id);
       const activeMine = activeAttendanceFor(u.id);
       const mine = activeMine || myRecords.at(-1) || attendanceEndedTodayFor(u.id);
       const currentRound = mine ? attendanceRoundNumber(mine) : 0;
+      const activeIsOvertime = isOvertimeAttendance(activeMine);
+      const canStartOvertime = !activeMine && completedRegularAttendanceForOvertime(u.id);
       const status = !mine?.start
         ? "未出勤"
         : activeMine
-          ? `勤務中（${currentRound}回目）`
-          : "退勤済み（再出勤可）";
+          ? `${activeIsOvertime ? "時間外勤務中" : "勤務中"}（${currentRound}回目）`
+          : isOvertimeAttendance(mine)
+            ? "時間外勤務終了（再出勤可）"
+            : "退勤済み（時間外開始可）";
       const overtimeDate = activeMine?.date || mine?.date || todayKey();
       const overtimeToday = dayOvertimeMinutes(u.id, overtimeDate, true);
       const staff = DB.users.filter(x => x.companyId === u.companyId && x.role !== "family");
@@ -3476,13 +3475,11 @@
             <div class="record-time overtime"><span>時間外</span><strong id="overtimeToday" class="${overtimeToday ? "positive" : ""}">${minutesLabel(overtimeToday)}</strong></div>
           </div>
           <div class="punch-actions">
-            <button class="punch-btn" type="button" onclick="punch('start')" ${activeMine ? "disabled" : ""}>${activeMine ? "出勤中" : mine?.start ? "再出勤を打刻" : "出勤を打刻"}</button>
-            <button class="punch-btn out" type="button" onclick="punch('end')" ${!activeMine ? "disabled" : ""}>退勤を打刻</button>
-            <div class="punch-overtime ${overtimeToday ? "positive" : ""}" id="punchOvertimePanel" aria-label="本日の時間外">
-              <span>時間外</span><strong id="punchOvertimeToday">${minutesLabel(overtimeToday)}</strong><small>8時間超過分</small>
-            </div>
+            <button class="punch-btn" type="button" onclick="punch('start')" ${activeMine ? "disabled" : ""}>${activeMine ? (activeIsOvertime ? "時間外中" : "出勤中") : mine?.start ? "再出勤を打刻" : "出勤を打刻"}</button>
+            <button class="punch-btn out" type="button" onclick="punch('end')" ${!activeMine ? "disabled" : ""}>${activeIsOvertime ? "時間外を終了" : "退勤を打刻"}</button>
+            <button class="punch-btn overtime" type="button" onclick="punch('overtime')" ${canStartOvertime ? "" : "disabled"}>${activeIsOvertime ? "時間外勤務中" : "時間外を開始"}</button>
           </div>
-          <div class="punch-help">退勤後も再出勤できます。勤務ごとに別の記録として保存されます。</div>
+          <div class="punch-help">時間外勤務は、通常勤務を退勤してから「時間外を開始」を押してください。終了時は「時間外を終了」を押します。</div>
         </section>
         <div class="section-title"><span>本日の出勤状況</span><small>${workingCount}名が勤務中</small></div>
         <div class="attendance-grid">${staff.map(person => {
@@ -3491,8 +3488,9 @@
           const a = active || records.at(-1) || attendanceEndedTodayFor(person.id);
           const round = a ? attendanceRoundNumber(a) : 0;
           const cls = !a?.start ? "none" : active ? "in" : "out";
-          const label = !a?.start ? "未出勤" : active ? `勤務中（${round}回目）` : "退勤済み・再出勤可";
-          const times = !a?.start ? "記録なし" : `${a.start} 〜 ${a.end || "勤務中"}${records.length > 1 ? `｜本日${records.length}回` : ""}`;
+          const overtimeRecord = isOvertimeAttendance(a);
+          const label = !a?.start ? "未出勤" : active ? `${overtimeRecord ? "時間外勤務中" : "勤務中"}（${round}回目）` : overtimeRecord ? "時間外勤務終了" : "退勤済み・再出勤可";
+          const times = !a?.start ? "記録なし" : `${overtimeRecord ? "時間外｜" : ""}${a.start} 〜 ${a.end || "勤務中"}${records.length > 1 ? `｜本日${records.length}回` : ""}`;
           const overtime = dayOvertimeMinutes(person.id, active?.date || a?.date || todayKey(), true);
           const canOpenHistory = canManageWorkRecords(u) || person.id === u.id;
           const content = `
@@ -3519,10 +3517,6 @@
         const minutes = dayOvertimeMinutes(current.id, active?.date || latest?.date || todayKey(), true);
         overtime.textContent = minutesLabel(minutes);
         overtime.classList.toggle("positive", minutes > 0);
-        const punchOvertime = document.getElementById("punchOvertimeToday");
-        const punchOvertimePanel = document.getElementById("punchOvertimePanel");
-        if (punchOvertime) punchOvertime.textContent = minutesLabel(minutes);
-        if (punchOvertimePanel) punchOvertimePanel.classList.toggle("positive", minutes > 0);
       }
       document.querySelectorAll("[data-attendance-overtime-user]").forEach(element => {
         const userId = element.dataset.attendanceOvertimeUser;
@@ -3546,15 +3540,36 @@
           userId:u.id,
           date:todayKey(),
           start:currentTime(),
-          end:null
+          end:null,
+          kind:"regular"
         });
         showSuccess(`${round}回目の出勤を記録しました`);
+      } else if (type === "overtime") {
+        if (active) {
+          showToast("先に現在の勤務を退勤してください");
+          return;
+        }
+        if (!completedRegularAttendanceForOvertime(u.id)) {
+          showToast("通常勤務を退勤してから時間外を開始してください");
+          return;
+        }
+        const round = attendanceRecordsForDate(u.id).length + 1;
+        DB.attendance.push({
+          id:`a${Date.now()}-${round}`,
+          companyId:u.companyId,
+          userId:u.id,
+          date:todayKey(),
+          start:currentTime(),
+          end:null,
+          kind:"overtime"
+        });
+        showSuccess("時間外勤務を開始しました");
       } else {
         if (!active) return;
         const round = attendanceRoundNumber(active);
         active.end = currentTime();
         active.endedDate = todayKey();
-        showSuccess(`${round}回目の退勤を記録しました`);
+        showSuccess(isOvertimeAttendance(active) ? "時間外勤務を終了しました" : `${round}回目の退勤を記録しました`);
       }
       renderApp({ preserveScroll:true });
     }
@@ -3582,11 +3597,19 @@
         .reduce((sum, record) => sum + workedMinutesForRecord(record, includeActive), 0);
     }
     function dayOvertimeMinutes(userId, date, includeActive = false) {
-      return Math.max(0, dayWorkedMinutes(userId, date, includeActive) - STANDARD_WORK_MINUTES);
+      const records = attendanceRecordsForDate(userId, date);
+      const explicitOvertime = records
+        .filter(isOvertimeAttendance)
+        .reduce((sum, record) => sum + workedMinutesForRecord(record, includeActive), 0);
+      const regularMinutes = records
+        .filter(record => !isOvertimeAttendance(record))
+        .reduce((sum, record) => sum + workedMinutesForRecord(record, includeActive), 0);
+      return explicitOvertime + Math.max(0, regularMinutes - STANDARD_WORK_MINUTES);
     }
     function overtimeMinutes(record, includeActive = false) {
       if (!record?.userId || !record.date) return 0;
-      const records = attendanceRecordsForDate(record.userId, record.date);
+      if (isOvertimeAttendance(record)) return workedMinutesForRecord(record, includeActive);
+      const records = attendanceRecordsForDate(record.userId, record.date).filter(item => !isOvertimeAttendance(item));
       let cumulative = 0;
       for (const item of records) {
         const before = Math.max(0, cumulative - STANDARD_WORK_MINUTES);
@@ -3653,7 +3676,11 @@
       const totalLabel = `${Math.floor(totalMinutes / 60)}時間${totalMinutes % 60}分`;
       const overtimeTotal = records.reduce((sum,record) => sum + overtimeMinutes(record), 0);
       const today = attendanceFor(person.id);
-      const todayStatus = !today?.start ? "未出勤" : !today.end ? `勤務中（${attendanceRoundNumber(today)}回目）` : "退勤済み（再出勤可）";
+      const todayStatus = !today?.start
+        ? "未出勤"
+        : !today.end
+          ? `${isOvertimeAttendance(today) ? "時間外勤務中" : "勤務中"}（${attendanceRoundNumber(today)}回目）`
+          : isOvertimeAttendance(today) ? "時間外勤務終了" : "退勤済み（再出勤可）";
       const attendanceDays = attendanceDayCount(records);
       document.getElementById("attendanceDetail").innerHTML = `
         <div class="detail-person">
@@ -3674,7 +3701,7 @@
         <h3 class="history-title">${monthLabel(state.attendanceMonth)}の勤務記録</h3>
         <div class="work-history">
           ${records.length ? records.map(record => `<div class="work-record">
-            <span class="record-date">${historyDateLabel(record.date)}<br><small>${attendanceRoundNumber(record)}回目</small></span>
+            <span class="record-date">${historyDateLabel(record.date)}<br><small>${attendanceRoundLabel(record)}</small></span>
             <span class="record-cell">出勤<strong>${record.start || "--:--"}</strong></span>
             <span class="record-cell">退勤<strong>${record.end || "--:--"}</strong></span>
             <span class="record-cell">勤務<strong>${durationLabel(record)}</strong></span>
@@ -3917,8 +3944,8 @@
         <div class="section-title"><span>${escapeHTML(target.name)}さんの記録</span><small>${records.length}件</small></div>
         ${records.length ? `<div class="work-record-grid">${[...records].reverse().map(record => `<article class="card monthly-record-card">
           <div class="monthly-record-head">
-            <span class="monthly-record-date">${historyDateLabel(record.date)}・${attendanceRoundNumber(record)}回目</span>
-            <span class="monthly-record-status ${record.end ? "" : "incomplete"}">${record.end ? "記録済み" : "退勤未打刻"}</span>
+            <span class="monthly-record-date">${historyDateLabel(record.date)}・${attendanceRoundLabel(record)}</span>
+            <span class="monthly-record-status ${record.end ? "" : "incomplete"}">${record.end ? attendanceKindLabel(record) : `${attendanceKindLabel(record)}・終了未打刻`}</span>
           </div>
           <div class="monthly-record-times">
             <div class="monthly-record-time"><span>出勤</span><strong>${record.start || "--:--"}</strong></div>
@@ -5229,7 +5256,7 @@
       if (!person || records === null) return null;
       const lines = [
         ["職員名","役割","日付","勤務回","出勤時刻","退勤時刻","勤務時間","時間外"],
-        ...records.map(row => [person.name, person.roleLabel, row.date, `${attendanceRoundNumber(row)}回目`, row.start || "", row.end || "", durationLabel(row), overtimeMinutesLabel(row)])
+        ...records.map(row => [person.name, person.roleLabel, row.date, attendanceRoundLabel(row), row.start || "", row.end || "", durationLabel(row), overtimeMinutesLabel(row)])
       ];
       return lines.map(line => line.map(csvCell).join(",")).join("\r\n");
     }
@@ -5250,7 +5277,7 @@
       const attendanceDays = attendanceDayCount(records);
       const rows = records.map(record => `<tr>
         <td class="nowrap">${escapeHTML(record.date)}</td>
-        <td class="nowrap">${attendanceRoundNumber(record)}回目</td>
+        <td class="nowrap">${escapeHTML(attendanceRoundLabel(record))}</td>
         <td class="nowrap">${escapeHTML(record.start || "--:--")}</td>
         <td class="nowrap">${escapeHTML(record.end || "--:--")}</td>
         <td class="nowrap">${escapeHTML(durationLabel(record))}</td>
@@ -5295,7 +5322,7 @@
           const overtime = overtimeMinutes(record);
           return `<tr>
             <td class="nowrap"><span>${escapeHTML(record.date)}</span>${amendedNote}</td>
-            <td class="nowrap">${attendanceRoundNumber(record)}回目</td>
+            <td class="nowrap">${escapeHTML(attendanceRoundLabel(record))}</td>
             <td class="nowrap">${escapeHTML(record.start || "--:--")}</td>
             <td class="nowrap">${escapeHTML(record.end || "--:--")}</td>
             <td class="nowrap">${escapeHTML(durationLabel(record))}</td>
@@ -5340,7 +5367,7 @@
       const header = ["職員名","役割","日付","勤務回","出勤時刻","退勤時刻","勤務時間","時間外"];
       const lines = [header, ...rows.map(row => {
         const person = userById(row.userId);
-        return [person?.name || "不明", person?.roleLabel || "", row.date, `${attendanceRoundNumber(row)}回目`, row.start || "", row.end || "", durationLabel(row), overtimeMinutesLabel(row)];
+        return [person?.name || "不明", person?.roleLabel || "", row.date, attendanceRoundLabel(row), row.start || "", row.end || "", durationLabel(row), overtimeMinutesLabel(row)];
       })];
       return lines.map(line => line.map(csvCell).join(",")).join("\r\n");
     }
@@ -5431,6 +5458,7 @@
         const header = rows.shift() || [];
         const nameIndex = header.indexOf("職員名");
         const dateIndex = header.indexOf("日付");
+        const roundIndex = header.indexOf("勤務回");
         const startIndex = header.indexOf("出勤時刻");
         const endIndex = header.indexOf("退勤時刻");
         if ([nameIndex,dateIndex,startIndex,endIndex].some(index => index < 0)) {
@@ -5444,6 +5472,7 @@
           const date = String(values[dateIndex] || "").trim();
           const start = String(values[startIndex] || "").trim();
           const end = String(values[endIndex] || "").trim();
+          const kind = roundIndex >= 0 && String(values[roundIndex] || "").includes("時間外") ? "overtime" : "regular";
           const person = DB.users.find(candidate => candidate.companyId === u.companyId && candidate.role !== "family" && candidate.name === name);
           const validDate = /^\d{4}-\d{2}-\d{2}$/.test(date);
           const validTime = value => value === "" || /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
@@ -5458,6 +5487,7 @@
           }
           record.start = start || null;
           record.end = end || null;
+          record.kind = kind;
           imported += 1;
         });
         renderApp({ preserveScroll:true });
