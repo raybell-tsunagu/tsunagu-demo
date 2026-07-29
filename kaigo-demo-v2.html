@@ -1200,6 +1200,69 @@
       font-size: 15px;
     }
     .health-textarea { min-height: 92px; resize: vertical; line-height: 1.6; }
+    .meal-scale-field { grid-column: 1 / -1; }
+    .meal-scale {
+      display: grid;
+      grid-template-columns: repeat(5,minmax(0,1fr));
+      gap: 6px;
+    }
+    .meal-scale button {
+      min-height: 44px;
+      padding: 0;
+      color: var(--brand-dark);
+      border: 1.5px solid #b9ccc6;
+      border-radius: 10px;
+      background: #fff;
+      font-size: 13px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+    .meal-scale button.selected {
+      color: #fff;
+      border-color: var(--brand);
+      background: var(--brand);
+      box-shadow: 0 4px 10px rgba(23,107,93,.17);
+    }
+    .health-drink-section { grid-column: 1 / -1; }
+    .health-drink-rows { display: grid; gap: 8px; }
+    .health-drink-row {
+      display: grid;
+      grid-template-columns: minmax(0,1.4fr) minmax(84px,.7fr) 44px;
+      gap: 7px;
+      align-items: end;
+      padding: 9px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      background: #f7faf9;
+    }
+    .health-drink-row label { margin-left: 1px; }
+    .health-drink-remove {
+      display: grid;
+      width: 44px;
+      height: 44px;
+      place-items: center;
+      color: var(--important);
+      border: 1px solid #dfb6b1;
+      border-radius: 10px;
+      background: #fff5f4;
+      cursor: pointer;
+    }
+    .health-drink-remove .icon { width: 18px; height: 18px; }
+    .health-drink-add {
+      display: inline-flex;
+      min-height: 44px;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+      padding: 0 13px;
+      color: var(--brand-dark);
+      border: 1.5px solid var(--brand);
+      border-radius: 10px;
+      background: #fff;
+      font-size: 11px;
+      font-weight: 900;
+      cursor: pointer;
+    }
     .health-form-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 13px; }
     .health-form-actions button { min-height: 48px; border-radius: 11px; font-size: 12px; font-weight: 800; cursor: pointer; }
     .health-cancel { color: var(--brand-dark); border: 1.5px solid var(--brand); background: #fff; }
@@ -1218,6 +1281,7 @@
     .vital-item.warning strong { color: var(--incident); }
     .meal-health-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 7px; margin-top: 7px; }
     .meal-health-row span { padding: 8px 5px; border-radius: 9px; background: #f0f5f3; color: #435952; font-size: 10px; font-weight: 700; text-align: center; }
+    .health-drinks-summary { margin: 7px 0 0; padding: 9px 10px; color: #435952; border: 1px solid #d6e3de; border-radius: 9px; background: #f5f9f7; font-size: 10.5px; font-weight: 700; line-height: 1.6; }
     .health-memo { margin: 9px 0 0; padding-top: 9px; border-top: 1px solid #e7ecea; font-size: 13px; line-height: 1.65; white-space: pre-wrap; }
 
     /* Shift calendar */
@@ -1990,6 +2054,8 @@
       .health-resident-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
       .health-form-grid { grid-template-columns: repeat(4,minmax(0,1fr)); }
       .health-field.full { grid-column: 1 / -1; }
+      .meal-scale { grid-template-columns: repeat(10,minmax(0,1fr)); }
+      .vital-grid { grid-template-columns: repeat(5,1fr); }
       .health-record-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
     }
     @media (min-width: 1040px) {
@@ -2219,13 +2285,17 @@
     );
 
     const HEALTH_SAMPLE_DATES = ["2026-07-25T08:30","2026-07-24T14:00","2026-07-23T09:10"];
-    const HEALTH_MEAL_LEVELS = ["完食","半分","少量","未摂取"];
+    const HEALTH_MEAL_LEVELS = Array.from({ length:10 }, (_,index) => index + 1);
     DB.healthRecords = DB.residents.flatMap((resident, residentIndex) => {
       const recorders = DB.users.filter(user => user.companyId === resident.companyId && user.role !== "family");
       return HEALTH_SAMPLE_DATES.map((recordedAt, recordIndex) => {
         const hasFever = recordIndex === 0 && residentIndex % 3 === 1;
-        const staple = HEALTH_MEAL_LEVELS[(residentIndex + recordIndex) % 3];
-        const side = HEALTH_MEAL_LEVELS[(residentIndex + recordIndex + 1) % 3];
+        const hasLowSpo2 = recordIndex === 1 && residentIndex % 3 === 0;
+        const staple = 6 + ((residentIndex + recordIndex) % 5);
+        const mainDish = 5 + ((residentIndex + recordIndex + 1) % 6);
+        const sideDish = 4 + ((residentIndex + recordIndex + 2) % 7);
+        const teaAmount = 120 + ((residentIndex + recordIndex) % 4) * 30;
+        const waterAmount = 100 + ((residentIndex + recordIndex + 1) % 4) * 40;
         return {
           id:`health-${resident.id}-${recordIndex + 1}`,
           companyId:resident.companyId,
@@ -2235,9 +2305,15 @@
           systolic:112 + ((residentIndex * 7 + recordIndex * 4) % 24),
           diastolic:66 + ((residentIndex * 5 + recordIndex * 3) % 17),
           pulse:68 + ((residentIndex * 6 + recordIndex * 5) % 22),
+          spo2:hasLowSpo2 ? 89 : 95 + ((residentIndex + recordIndex) % 5),
+          respiration:15 + ((residentIndex + recordIndex) % 6),
           staple,
-          side,
-          water:320 + ((residentIndex + recordIndex) % 5) * 80,
+          mainDish,
+          sideDish,
+          drinks:[
+            { type:"お茶", amount:teaAmount },
+            { type:recordIndex % 2 === 0 ? "水" : "牛乳", amount:waterAmount }
+          ],
           memo:hasFever ? "微熱が見られたため、水分補給と安静を促し経過観察しています。" : recordIndex === 0 ? "表情は穏やかで、普段と変わりなく過ごされています。" : "体調に大きな変化はありません。",
           recorderId:recorders[(residentIndex + recordIndex) % recorders.length]?.id || null
         };
@@ -3943,6 +4019,7 @@
       .sort((a,b) => String(b.recordedAt).localeCompare(String(a.recordedAt)));
     const latestHealthRecord = residentId => healthRecordsForResident(residentId)[0] || null;
     const temperatureWarning = record => Number(record?.temperature) >= 37.5;
+    const spo2Warning = record => Number(record?.spo2) > 0 && Number(record?.spo2) < 90;
     const bloodPressureWarning = record => Number(record?.systolic) >= 160 || Number(record?.systolic) <= 90 || Number(record?.diastolic) >= 100;
     const pulseWarning = record => Number(record?.pulse) >= 100 || Number(record?.pulse) <= 50;
     function healthDateTimeLabel(value) {
@@ -3955,9 +4032,25 @@
       const local = new Date(now.getTime() - now.getTimezoneOffset() * 60_000);
       return local.toISOString().slice(0,16);
     }
+    const healthDrinkEntries = record => Array.isArray(record?.drinks) ? record.drinks : [];
+    const healthDrinkTotal = record => healthDrinkEntries(record).reduce((total,drink) => total + (Number(drink.amount) || 0), 0);
+    function healthDrinkLabel(record) {
+      const entries = healthDrinkEntries(record);
+      const detail = entries.map(drink => `${drink.type} ${Number(drink.amount)}ml`).join("・");
+      return `${detail}${detail ? " " : ""}（合計 ${healthDrinkTotal(record)}ml）`;
+    }
     function mealHealthLabel(record) {
       if (!record) return "";
-      return record.staple === record.side ? `食事${record.staple}` : `主食${record.staple}・副食${record.side}`;
+      return `主食${record.staple}/10・主菜${record.mainDish}/10・副菜${record.sideDish}/10`;
+    }
+    function healthSummaryLabel(record) {
+      if (!record) return "";
+      return `体温${Number(record.temperature).toFixed(1)}℃・SpO2 ${Number(record.spo2)}%・${mealHealthLabel(record)}・水分合計${healthDrinkTotal(record)}ml`;
+    }
+    function healthRecordForDate(companyId, residentId, dateKey) {
+      return DB.healthRecords
+        .filter(record => record.companyId === companyId && record.residentId === residentId && String(record.recordedAt).slice(0,10) === dateKey)
+        .sort((a,b) => String(b.recordedAt).localeCompare(String(a.recordedAt)))[0] || null;
     }
     function setHealthResident(residentId) {
       const resident = residentById(residentId);
@@ -3986,13 +4079,64 @@
       state.healthReturnScroll = null;
       renderApp({ restoreScroll:returnScroll });
     }
-    function healthMealOptions(selected) {
-      return HEALTH_MEAL_LEVELS.map(value => `<option value="${value}" ${selected === value ? "selected" : ""}>${value}</option>`).join("");
+    function healthMealScale(kind, label, selected) {
+      const value = Number(selected) || 10;
+      return `<div class="health-field meal-scale-field">
+        <label id="health-${kind}-label">${escapeHTML(label)}（1〜10、10=完食）</label>
+        <input id="health-${kind}" type="hidden" value="${value}">
+        <div class="meal-scale" id="health-${kind}-scale" role="radiogroup" aria-labelledby="health-${kind}-label">
+          ${HEALTH_MEAL_LEVELS.map(level => `<button class="${level === value ? "selected" : ""}" type="button" role="radio" aria-checked="${level === value}" data-meal-level="${level}" onclick="selectHealthMeal('${kind}',${level},this)">${level}</button>`).join("")}
+        </div>
+      </div>`;
+    }
+    function selectHealthMeal(kind, level, button) {
+      if (!["staple","mainDish","sideDish"].includes(kind) || !HEALTH_MEAL_LEVELS.includes(Number(level))) return;
+      const input = document.getElementById(`health-${kind}`);
+      const scale = document.getElementById(`health-${kind}-scale`);
+      if (!input || !scale) return;
+      input.value = String(level);
+      scale.querySelectorAll("button").forEach(item => {
+        const selected = item === button;
+        item.classList.toggle("selected",selected);
+        item.setAttribute("aria-checked",String(selected));
+      });
+    }
+    function healthDrinkRowMarkup(drink = {}, index = 0) {
+      return `<div class="health-drink-row" data-health-drink-row>
+        <div class="health-field"><label for="healthDrinkType-${index}">飲み物の種類</label><input class="health-input" id="healthDrinkType-${index}" data-drink-type type="text" list="healthDrinkOptions" maxlength="30" value="${escapeHTML(drink.type || "")}" placeholder="例：お茶"></div>
+        <div class="health-field"><label for="healthDrinkAmount-${index}">量（ml）</label><input class="health-input" id="healthDrinkAmount-${index}" data-drink-amount type="number" inputmode="numeric" min="1" max="5000" step="10" value="${escapeHTML(drink.amount ?? "")}" placeholder="150"></div>
+        <button class="health-drink-remove" type="button" onclick="removeHealthDrinkRow(this)" aria-label="${index + 1}行目の飲み物を削除">${icon("delete","icon")}</button>
+      </div>`;
+    }
+    function renumberHealthDrinkRows() {
+      document.querySelectorAll("#healthDrinkRows [data-health-drink-row]").forEach((row,index) => {
+        const type = row.querySelector("[data-drink-type]");
+        const amount = row.querySelector("[data-drink-amount]");
+        const labels = row.querySelectorAll("label");
+        const remove = row.querySelector(".health-drink-remove");
+        if (type) type.id = `healthDrinkType-${index}`;
+        if (amount) amount.id = `healthDrinkAmount-${index}`;
+        if (labels[0]) labels[0].htmlFor = `healthDrinkType-${index}`;
+        if (labels[1]) labels[1].htmlFor = `healthDrinkAmount-${index}`;
+        if (remove) remove.setAttribute("aria-label",`${index + 1}行目の飲み物を削除`);
+      });
+    }
+    function addHealthDrinkRow() {
+      const rows = document.getElementById("healthDrinkRows");
+      if (!rows) return;
+      rows.insertAdjacentHTML("beforeend",healthDrinkRowMarkup({},rows.children.length));
+      renumberHealthDrinkRows();
+      rows.lastElementChild?.querySelector("[data-drink-type]")?.focus();
+    }
+    function removeHealthDrinkRow(button) {
+      button?.closest("[data-health-drink-row]")?.remove();
+      renumberHealthDrinkRows();
     }
     function renderHealthForm() {
       if (!state.healthEditingId) return "";
       const existing = state.healthEditingId === "new" ? null : DB.healthRecords.find(record => record.id === state.healthEditingId);
       const value = (key, fallback = "") => existing?.[key] ?? fallback;
+      const drinks = existing ? healthDrinkEntries(existing) : [{ type:"お茶", amount:150 }];
       return `<section class="card health-form" id="healthForm" aria-labelledby="healthFormTitle">
         <h2 id="healthFormTitle">${existing ? "体調記録を編集" : "新しい体調記録"}</h2>
         <div class="health-form-grid">
@@ -4001,9 +4145,17 @@
           <div class="health-field"><label for="healthSystolic">血圧・上</label><input class="health-input" id="healthSystolic" type="number" inputmode="numeric" min="60" max="240" value="${escapeHTML(value("systolic","120"))}"></div>
           <div class="health-field"><label for="healthDiastolic">血圧・下</label><input class="health-input" id="healthDiastolic" type="number" inputmode="numeric" min="30" max="150" value="${escapeHTML(value("diastolic","70"))}"></div>
           <div class="health-field"><label for="healthPulse">脈拍（回/分）</label><input class="health-input" id="healthPulse" type="number" inputmode="numeric" min="30" max="200" value="${escapeHTML(value("pulse","72"))}"></div>
-          <div class="health-field"><label for="healthStaple">主食</label><select class="health-select" id="healthStaple">${healthMealOptions(value("staple","完食"))}</select></div>
-          <div class="health-field"><label for="healthSide">副食</label><select class="health-select" id="healthSide">${healthMealOptions(value("side","完食"))}</select></div>
-          <div class="health-field"><label for="healthWater">水分量（ml）</label><input class="health-input" id="healthWater" type="number" inputmode="numeric" min="0" max="5000" step="10" value="${escapeHTML(value("water","400"))}"></div>
+          <div class="health-field"><label for="healthSpo2">SpO2（%）</label><input class="health-input" id="healthSpo2" type="number" inputmode="numeric" min="50" max="100" value="${escapeHTML(value("spo2","98"))}"></div>
+          <div class="health-field"><label for="healthRespiration">呼吸回数（回/分）</label><input class="health-input" id="healthRespiration" type="number" inputmode="numeric" min="1" max="100" value="${escapeHTML(value("respiration","16"))}"></div>
+          ${healthMealScale("staple","主食",value("staple",10))}
+          ${healthMealScale("mainDish","主菜",value("mainDish",10))}
+          ${healthMealScale("sideDish","副菜",value("sideDish",10))}
+          <div class="health-drink-section">
+            <label>飲み物</label>
+            <datalist id="healthDrinkOptions"><option value="お茶"><option value="水"><option value="コーヒー"><option value="ジュース"><option value="牛乳"><option value="経口補水液"></datalist>
+            <div class="health-drink-rows" id="healthDrinkRows">${drinks.map(healthDrinkRowMarkup).join("")}</div>
+            <button class="health-drink-add" type="button" onclick="addHealthDrinkRow()">${icon("plus","icon icon-sm")}飲み物を追加</button>
+          </div>
           <div class="health-field full"><label for="healthMemo">メモ</label><textarea class="health-textarea" id="healthMemo" maxlength="500" placeholder="体調や対応内容を入力してください">${escapeHTML(value("memo",""))}</textarea></div>
         </div>
         <div class="health-form-actions">
@@ -4014,7 +4166,7 @@
     }
     function renderHealthRecord(record) {
       const recorder = userById(record.recorderId);
-      const hasWarning = temperatureWarning(record) || bloodPressureWarning(record) || pulseWarning(record);
+      const hasWarning = temperatureWarning(record) || spo2Warning(record) || bloodPressureWarning(record) || pulseWarning(record);
       return `<article class="card health-record-card ${hasWarning ? "has-warning" : ""}">
         <div class="health-record-head">
           <span><strong>${escapeHTML(healthDateTimeLabel(record.recordedAt))}</strong><small>記録：${escapeHTML(recorder?.name || "職員")}</small></span>
@@ -4024,12 +4176,15 @@
           <div class="vital-item ${temperatureWarning(record) ? "warning" : ""}"><span>体温</span><strong>${Number(record.temperature).toFixed(1)}℃</strong></div>
           <div class="vital-item ${bloodPressureWarning(record) ? "warning" : ""}"><span>血圧</span><strong>${record.systolic}/${record.diastolic}</strong></div>
           <div class="vital-item ${pulseWarning(record) ? "warning" : ""}"><span>脈拍</span><strong>${record.pulse}</strong></div>
+          <div class="vital-item ${spo2Warning(record) ? "warning" : ""}"><span>SpO2</span><strong>${record.spo2}%</strong></div>
+          <div class="vital-item"><span>呼吸</span><strong>${record.respiration}回/分</strong></div>
         </div>
         <div class="meal-health-row">
-          <span>主食 ${escapeHTML(record.staple)}</span>
-          <span>副食 ${escapeHTML(record.side)}</span>
-          <span>水分 ${Number(record.water)}ml</span>
+          <span>主食 ${record.staple}/10</span>
+          <span>主菜 ${record.mainDish}/10</span>
+          <span>副菜 ${record.sideDish}/10</span>
         </div>
+        <p class="health-drinks-summary">${escapeHTML(healthDrinkLabel(record))}</p>
         ${record.memo ? `<p class="health-memo">${escapeHTML(record.memo)}</p>` : ""}
       </article>`;
     }
@@ -4042,7 +4197,7 @@
       const records = selected ? healthRecordsForResident(selected.id) : [];
       return `
         ${pageHead("HEALTH RECORDS","体調管理","バイタル・食事量・水分量を、利用者様ごとに記録します。","health")}
-        <div class="info-box">${icon("info","icon icon-sm")}<span>体温37.5℃以上、血圧・脈拍が基準を超えた記録は警告色で表示します。</span></div>
+        <div class="info-box">${icon("info","icon icon-sm")}<span>体温37.5℃以上、SpO2 90%未満、血圧・脈拍が基準を超えた記録は警告色で表示します。</span></div>
         <div class="section-title"><span>利用者様を選択</span><small>${residents.length}名</small></div>
         <div class="health-resident-grid">
           ${residents.map(resident => {
@@ -4050,7 +4205,7 @@
             return `<button class="health-resident-card ${state.healthResidentId === resident.id ? "active" : ""}" type="button" onclick="setHealthResident('${resident.id}')" aria-pressed="${state.healthResidentId === resident.id}">
               <span class="avatar">${escapeHTML(initial(resident.name))}</span>
               <span><strong>${escapeHTML(resident.name)}様</strong><small>${escapeHTML(resident.care)}</small></span>
-              <span class="health-latest">${latest ? `<span class="${temperatureWarning(latest) ? "warning" : ""}">${Number(latest.temperature).toFixed(1)}℃</span><span>血圧 ${latest.systolic}/${latest.diastolic}</span>` : "記録なし"}</span>
+              <span class="health-latest">${latest ? `<span class="${temperatureWarning(latest) ? "warning" : ""}">${Number(latest.temperature).toFixed(1)}℃</span><span class="${spo2Warning(latest) ? "warning" : ""}">SpO2 ${latest.spo2}%</span>` : "記録なし"}</span>
             </button>`;
           }).join("")}
         </div>
@@ -4067,11 +4222,18 @@
       const systolic = Number(document.getElementById("healthSystolic")?.value);
       const diastolic = Number(document.getElementById("healthDiastolic")?.value);
       const pulse = Number(document.getElementById("healthPulse")?.value);
-      const staple = document.getElementById("healthStaple")?.value || "";
-      const side = document.getElementById("healthSide")?.value || "";
-      const water = Number(document.getElementById("healthWater")?.value);
+      const spo2 = Number(document.getElementById("healthSpo2")?.value);
+      const respiration = Number(document.getElementById("healthRespiration")?.value);
+      const staple = Number(document.getElementById("health-staple")?.value);
+      const mainDish = Number(document.getElementById("health-mainDish")?.value);
+      const sideDish = Number(document.getElementById("health-sideDish")?.value);
+      const drinks = [...document.querySelectorAll("#healthDrinkRows [data-health-drink-row]")].map(row => ({
+        type:row.querySelector("[data-drink-type]")?.value.trim() || "",
+        amount:Number(row.querySelector("[data-drink-amount]")?.value)
+      }));
       const memo = document.getElementById("healthMemo")?.value.trim() || "";
-      const valid = recordedAt && temperature >= 34 && temperature <= 42 && systolic >= 60 && systolic <= 240 && diastolic >= 30 && diastolic <= 150 && pulse >= 30 && pulse <= 200 && HEALTH_MEAL_LEVELS.includes(staple) && HEALTH_MEAL_LEVELS.includes(side) && water >= 0 && water <= 5000;
+      const validDrinks = drinks.length > 0 && drinks.every(drink => drink.type && drink.amount >= 1 && drink.amount <= 5000);
+      const valid = recordedAt && temperature >= 34 && temperature <= 42 && systolic >= 60 && systolic <= 240 && diastolic >= 30 && diastolic <= 150 && pulse >= 30 && pulse <= 200 && spo2 >= 50 && spo2 <= 100 && respiration >= 1 && respiration <= 100 && HEALTH_MEAL_LEVELS.includes(staple) && HEALTH_MEAL_LEVELS.includes(mainDish) && HEALTH_MEAL_LEVELS.includes(sideDish) && validDrinks;
       if (!valid) {
         showToast("入力内容を確認してください");
         return;
@@ -4082,7 +4244,7 @@
         record = { id:`health-${Date.now()}`, companyId:u.companyId, residentId:resident.id };
         DB.healthRecords.push(record);
       }
-      Object.assign(record, { recordedAt, temperature, systolic, diastolic, pulse, staple, side, water, memo, recorderId:u.id });
+      Object.assign(record, { recordedAt, temperature, systolic, diastolic, pulse, spo2, respiration, staple, mainDish, sideDish, drinks, memo, recorderId:u.id });
       const returnScroll = scrollSnapshotForReturn(state.healthReturnScroll);
       state.healthEditingId = null;
       state.healthReturnScroll = null;
@@ -4249,9 +4411,7 @@
     }
     function renderNote(note, u) {
       const author = userById(note.authorId);
-      const health = DB.healthRecords
-        .filter(record => record.companyId === note.companyId && record.residentId === note.residentId && String(record.recordedAt).slice(0,10) === note.dateKey)
-        .sort((a,b) => String(b.recordedAt).localeCompare(String(a.recordedAt)))[0] || null;
+      const health = healthRecordForDate(note.companyId,note.residentId,note.dateKey);
       return `<article class="card notebook-card">
         <div class="note-head"><span class="note-date">${escapeHTML(note.date)}</span><span class="note-author">記入<br>${escapeHTML(author?.name || "職員")}</span></div>
         <div class="summary-grid">
@@ -4259,7 +4419,7 @@
           <div class="summary"><strong>${escapeHTML(note.mood)}</strong><span>ご様子</span></div>
           <div class="summary"><strong>${escapeHTML(note.bath)}</strong><span>入浴</span></div>
         </div>
-        ${health ? `<div class="note-health-summary ${temperatureWarning(health) ? "warning" : ""}">${icon("health","icon icon-sm")}<span>体温 ${Number(health.temperature).toFixed(1)}℃・${escapeHTML(mealHealthLabel(health))}</span></div>` : ""}
+        ${health ? `<div class="note-health-summary ${temperatureWarning(health) || spo2Warning(health) ? "warning" : ""}">${icon("health","icon icon-sm")}<span>${escapeHTML(healthSummaryLabel(health))}</span></div>` : ""}
         <div class="note-body">${escapeHTML(note.text)}</div>
         ${note.replies.map(reply => `<div class="reply-area"><strong>${icon("message","icon icon-sm")}ご家族から｜${escapeHTML(reply.author)}</strong>${escapeHTML(reply.text)}</div>`).join("")}
         ${u.role === "family" ? `<div class="reply-form"><label class="sr-only" for="reply-${note.id}">職員への返信</label><input class="reply-input" id="reply-${note.id}" placeholder="職員へのメッセージ"><button class="reply-submit" type="button" onclick="addReply('${note.id}')">返信する</button></div>` : ""}
@@ -4880,6 +5040,8 @@
     .summary-table th { width: 12%; color: #4d5c57; background: #f6f8f7; font-size: 9px; }
     .summary-table tr:last-child th, .summary-table tr:last-child td { border-bottom: 0; }
     .record-body { padding: 9px; font-size: 10.5px; }
+    .health-print-summary { padding: 6px 9px; color: #315e53; border-bottom: 1px solid #d2d8d6; background: #f2f8f5; font-size: 9px; font-weight: 700; }
+    .health-print-summary.warning { color: #8f3d09; background: #fff0e2; }
     .reply { margin: 0 9px 9px; padding: 6px 8px; border-left: 3px solid #52789b; background: #eef4f8; font-size: 9.5px; }
     .list-table { table-layout: fixed; font-size: 8.8px; }
     .list-table th, .list-table td { padding: 5px 4px; border: 1px solid #aab4b1; text-align: left; vertical-align: top; overflow-wrap: break-word; word-break: normal; }
@@ -4964,9 +5126,11 @@
           <div class="record-head"><span>対象利用者：${escapeHTML(resident.name)}様</span><span>${notes.length}件</span></div>
           ${notes.length ? notes.map(note => {
             const author = userById(note.authorId);
+            const health = healthRecordForDate(note.companyId,note.residentId,note.dateKey);
             return `<article class="record">
               <div class="record-head"><span>${dateLabel(note.dateKey)}</span><span>記入者：${escapeHTML(author?.name || "職員")}</span></div>
               <table class="summary-table"><tr><th>食事</th><td>${escapeHTML(note.meal)}</td><th>ご様子</th><td>${escapeHTML(note.mood)}</td><th>入浴</th><td>${escapeHTML(note.bath)}</td></tr></table>
+              ${health ? `<div class="health-print-summary ${temperatureWarning(health) || spo2Warning(health) ? "warning" : ""}">体調：${escapeHTML(healthSummaryLabel(health))}</div>` : ""}
               <div class="record-body">${printableText(note.text)}</div>
               ${note.replies.map(reply => `<div class="reply"><strong>ご家族から｜${escapeHTML(reply.author)}</strong><br>${printableText(reply.text)}</div>`).join("")}
             </article>`;
