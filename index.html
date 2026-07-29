@@ -129,6 +129,16 @@
     .hero h1 span { display:block; margin-top:13px; color:var(--ink); font-size:clamp(22px,6.8vw,38px); font-weight:800; line-height:1.45; letter-spacing:.02em; }
     .hero-lead { max-width:600px; margin:19px 0 0; color:var(--muted); font-size:15px; line-height:1.9; }
     .hero-actions { display:flex; flex-direction:column; gap:10px; margin-top:28px; }
+    .hero-demo-note {
+      display:flex;
+      align-items:center;
+      gap:7px;
+      margin:10px 0 0;
+      color:var(--brand-dark);
+      font-size:11px;
+      font-weight:900;
+    }
+    .hero-demo-note .icon { width:16px; height:16px; }
     .button {
       display:inline-flex;
       min-height:54px;
@@ -256,8 +266,23 @@
     .contact-card .section-kicker { color:#b9ddd4; }
     .contact-card h2 { margin:0; font-size:clamp(28px,8vw,42px); line-height:1.4; }
     .contact-card p { max-width:600px; margin:12px auto 22px; color:#d5e4df; font-size:13px; }
-    .contact-card .button { width:100%; color:var(--brand-dark); background:#fff; }
-    .contact-note { margin:10px 0 0 !important; font-size:10px !important; opacity:.75; }
+    .contact-actions { display:grid; gap:10px; max-width:620px; margin:0 auto; }
+    .contact-card .button {
+      width:100%;
+      color:var(--brand-dark);
+      border:0;
+      background:#fff;
+      font-family:inherit;
+      cursor:pointer;
+    }
+    .contact-card .button.contact-webmail {
+      color:#fff;
+      border:1px solid rgba(255,255,255,.52);
+      background:rgba(255,255,255,.06);
+      box-shadow:none;
+    }
+    .contact-status { min-height:24px; margin:8px auto 0 !important; color:#d8eee8 !important; font-size:11px !important; font-weight:800; }
+    .contact-note { margin:2px 0 0 !important; font-size:10px !important; opacity:.78; }
     .site-footer { padding:31px 0 38px; color:#67756f; background:#eff2ef; }
     .footer-inner { display:grid; gap:18px; }
     .footer-brand { display:flex; align-items:center; gap:10px; }
@@ -278,7 +303,8 @@
       .flow-card { padding:78px 21px 23px; }
       .flow-card::before { top:21px; }
       .contact-card { padding:48px; }
-      .contact-card .button { width:auto; min-width:260px; }
+      .contact-actions { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .contact-card .button { min-width:0; }
       .footer-inner { grid-template-columns:1fr auto; align-items:center; }
       .copyright { grid-column:1 / -1; }
     }
@@ -319,6 +345,7 @@
       <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
       <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="m11 12 8-8M16 7l2 2M14 9l2 2"/></symbol>
       <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></symbol>
+      <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></symbol>
       <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
     </defs>
   </svg>
@@ -353,16 +380,17 @@
             <a class="button primary" href="./app.html">デモを試す<svg class="icon" aria-hidden="true"><use href="#i-arrow"></use></svg></a>
             <a class="button secondary" href="#pricing">料金を見る</a>
           </div>
+          <p class="hero-demo-note"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg>ログイン不要・開いてすぐ使えます</p>
           <aside class="demo-access" aria-label="デモログイン情報">
             <span class="demo-access-icon"><svg class="icon" aria-hidden="true"><use href="#i-key"></use></svg></span>
             <div>
-              <strong>デモログイン情報</strong>
+              <strong>職員向けのログイン・セキュリティ機能を試す場合</strong>
               <div class="demo-credentials">
                 <span><b>企業ID</b><code>himawari</code> または <code>sakura</code></span>
                 <span><b>施設パスワード</b><code>himawari-demo</code> / <code>sakura-demo</code></span>
                 <span><b>PIN</b><code>0000</code></span>
               </div>
-              <small>施設長・職員・ご家族、それぞれの画面をお試しいただけます。</small>
+              <small>デモ画面右上の「終了」からログイン画面へ戻ると、施設長・職員・ご家族それぞれの認証をお試しいただけます。</small>
             </div>
           </aside>
           <div class="hero-proof"><span>初期費用0円</span><span>アカウント無制限</span><span>スマホ・タブレット対応</span></div>
@@ -470,8 +498,12 @@
           <p class="section-kicker">CONTACT</p>
           <h2>まずはデモを、<br>触ってみませんか。</h2>
           <p>施設での使い方や導入方法についても、お気軽にお問い合わせください。</p>
-          <a class="button" href="mailto:raybellfam@gmail.com"><svg class="icon"><use href="#i-mail"></use></svg>メールで問い合わせる</a>
-          <p class="contact-note">お問い合わせ先：raybellfam@gmail.com</p>
+          <div class="contact-actions">
+            <button class="button" type="button" onclick="copyContactEmail()"><svg class="icon" aria-hidden="true"><use href="#i-copy"></use></svg>メールアドレスをコピー</button>
+            <a class="button contact-webmail" href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;to=raybellfam%40gmail.com&amp;su=%E3%81%A4%E3%81%AA%E3%81%90%E3%83%8E%E3%83%BC%E3%83%88%E3%81%AE%E3%81%8A%E5%95%8F%E3%81%84%E5%90%88%E3%82%8F%E3%81%9B" target="_blank" rel="noopener noreferrer"><svg class="icon" aria-hidden="true"><use href="#i-mail"></use></svg>Gmailで問い合わせる</a>
+          </div>
+          <p class="contact-status" id="contactStatus" aria-live="polite"></p>
+          <p class="contact-note">お問い合わせ先：raybellfam@gmail.com（コピーしてお使いいただけます）</p>
         </div>
       </div>
     </section>
@@ -480,7 +512,7 @@
   <footer class="site-footer">
     <div class="container footer-inner">
       <div class="footer-brand"><span class="brand-mark"><svg class="icon"><use href="#i-logo"></use></svg></span><span><strong>つなぐノート</strong><br><small>提供元 RAYBELL</small></span></div>
-      <div class="footer-links"><a href="./app.html">デモを試す</a><a href="#faq">よくある質問</a><a href="mailto:raybellfam@gmail.com">お問い合わせ</a><a href="./terms.html">利用規約</a><a href="./privacy.html">プライバシーポリシー</a><a href="./tokushoho.html">特定商取引法に基づく表記</a></div>
+      <div class="footer-links"><a href="./app.html">デモを試す</a><a href="#faq">よくある質問</a><a href="#contact">お問い合わせ</a><a href="./terms.html">利用規約</a><a href="./privacy.html">プライバシーポリシー</a><a href="./tokushoho.html">特定商取引法に基づく表記</a></div>
       <p class="copyright">© 2026 RAYBELL. All rights reserved.</p>
     </div>
   </footer>
@@ -500,6 +532,29 @@
       nav.classList.remove("open");
       button.setAttribute("aria-expanded","false");
       button.setAttribute("aria-label","メニューを開く");
+    }
+    async function copyContactEmail() {
+      const email = "raybellfam@gmail.com";
+      const status = document.getElementById("contactStatus");
+      try {
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(email);
+        } else {
+          const field = document.createElement("textarea");
+          field.value = email;
+          field.setAttribute("readonly","");
+          field.style.position = "fixed";
+          field.style.opacity = "0";
+          document.body.appendChild(field);
+          field.select();
+          const copied = document.execCommand("copy");
+          field.remove();
+          if (!copied) throw new Error("copy failed");
+        }
+        status.textContent = "メールアドレスをコピーしました。";
+      } catch (error) {
+        status.textContent = `コピーできませんでした。${email} を選択してお使いください。`;
+      }
     }
     document.addEventListener("keydown", event => {
       if (event.key === "Escape") closeNav();

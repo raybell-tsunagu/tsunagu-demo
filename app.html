@@ -164,6 +164,39 @@
     .login h1 { margin: 0; font-size: 22px; line-height: 1.45; letter-spacing: .01em; }
     .login-lead { margin: 7px 0 19px; color: var(--muted); font-size: 14px; }
     .login-entry-grid { display: grid; gap: 12px; margin-top: 18px; }
+    .quick-demo-card {
+      display: flex;
+      width: 100%;
+      min-height: 62px;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      margin: 0 0 17px;
+      padding: 12px 16px;
+      color: #fff;
+      border: 0;
+      border-radius: 14px;
+      background: linear-gradient(135deg,var(--brand),var(--brand-dark));
+      box-shadow: 0 9px 22px rgba(23,107,93,.22);
+      font-size: 14px;
+      font-weight: 900;
+      line-height: 1.45;
+      cursor: pointer;
+    }
+    .quick-demo-card:hover { filter: brightness(.97); }
+    .quick-demo-card:active { transform: translateY(1px); }
+    .quick-demo-card .icon { width: 19px; height: 19px; flex: none; }
+    .manual-login-label {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .manual-login-label::before,
+    .manual-login-label::after { height: 1px; flex: 1; background: var(--line); content: ""; }
     .login-entry-card {
       display: grid;
       min-height: 118px;
@@ -2310,6 +2343,7 @@
       exportMonth: "2026-07",
       exportType: "renraku",
       exportResidentId: null,
+      autoDemoSession: false,
       locked: false,
       lockPin: "",
       lockError: "",
@@ -2469,7 +2503,11 @@
       if (state.loginStep === "audience") {
         body = `
           <h1>ログインする方を選択</h1>
-          <p class="login-lead">ご利用になる方に合った入口を選んでください。</p>
+          <p class="login-lead">すぐにデモを再開するか、ログイン機能をお試しください。</p>
+          <button class="quick-demo-card" type="button" onclick="startOneTapDemo()">
+            ${icon("arrow","icon")}<span>ワンタップでデモを再開<br><small>ひまわりデイサービス・施設長</small></span>
+          </button>
+          <p class="manual-login-label">ログイン機能を試す</p>
           <div class="login-entry-grid">
             <button class="login-entry-card" type="button" onclick="chooseLoginAudience('staff')">
               <span class="login-entry-icon">${icon("users","icon icon-lg")}</span>
@@ -2854,32 +2892,7 @@
       const audienceMatches = state.loginAudience === "family" ? u?.role === "family" : state.loginAudience === "staff" && u?.role !== "family";
       if (u && audienceMatches && state.pin === u.pin) {
         resetPinSecurity(u.id);
-        state.userId = u.id;
-        state.view = u.role === "family" ? "renraku" : "home";
-        state.viewHistory = [];
-        state.locked = false;
-        state.pin = "";
-        state.pinError = "";
-        state.postResidentId = null;
-        state.renrakuTab = null;
-        state.healthResidentId = DB.residents.find(r => r.companyId === u.companyId)?.id || null;
-        state.healthEditingId = null;
-        state.healthReturnScroll = null;
-        state.shiftMonth = todayKey().slice(0,7);
-        state.shiftEditing = null;
-        state.shiftReturnScroll = null;
-        state.workRecordUserId = u.id;
-        state.workRecordMonth = todayKey().slice(0,7);
-        state.workRecordEditingId = null;
-        state.workRecordReturnScroll = null;
-        state.exportResidentId = DB.residents.find(r => r.companyId === u.companyId)?.id || null;
-        document.getElementById("loginRoot").classList.add("hidden");
-        document.getElementById("lockRoot").classList.add("hidden");
-        document.getElementById("shell").classList.remove("hidden");
-        setRoute(u.role === "family" ? "renraku" : "home");
-        resetInactivityTimer();
-        showToast(`${u.name}さんでログインしました`);
-        maybeOpenGuide(u);
+        startUserSession(u, false);
       } else {
         const security = recordPinFailure(u?.id);
         state.pin = "";
@@ -2890,14 +2903,54 @@
         if (!security?.lockedUntil) setTimeout(() => document.getElementById("pinWrap")?.classList.remove("shake"), 420);
       }
     }
+    function startUserSession(user, autoDemo = false) {
+      if (!user) return;
+      clearTimeout(inactivityTimer);
+      inactivityTimer = null;
+      state.autoDemoSession = autoDemo;
+      state.userId = user.id;
+      state.view = defaultView(user);
+      state.viewHistory = [];
+      state.locked = false;
+      state.pin = "";
+      state.pinError = "";
+      state.postResidentId = null;
+      state.renrakuTab = null;
+      state.healthResidentId = DB.residents.find(r => r.companyId === user.companyId)?.id || null;
+      state.healthEditingId = null;
+      state.healthReturnScroll = null;
+      state.shiftMonth = todayKey().slice(0,7);
+      state.shiftEditing = null;
+      state.shiftReturnScroll = null;
+      state.workRecordUserId = user.id;
+      state.workRecordMonth = todayKey().slice(0,7);
+      state.workRecordEditingId = null;
+      state.workRecordReturnScroll = null;
+      state.exportResidentId = DB.residents.find(r => r.companyId === user.companyId)?.id || null;
+      document.getElementById("loginRoot").classList.add("hidden");
+      document.getElementById("lockRoot").classList.add("hidden");
+      document.getElementById("shell").classList.remove("hidden");
+      setRoute(defaultView(user));
+      if (!autoDemo) resetInactivityTimer();
+      showToast(autoDemo ? "施設長デモを開始しました" : `${user.name}さんでログインしました`);
+      maybeOpenGuide(user);
+    }
+    function startOneTapDemo() {
+      const demoManager = userById("u1");
+      if (!demoManager) {
+        renderLogin();
+        return;
+      }
+      startUserSession(demoManager, true);
+    }
     function resetInactivityTimer() {
       clearTimeout(inactivityTimer);
       inactivityTimer = null;
-      if (!me() || state.locked) return;
+      if (!me() || state.locked || state.autoDemoSession) return;
       inactivityTimer = setTimeout(lockSession, INACTIVITY_TIMEOUT_MS);
     }
     function lockSession() {
-      if (!me() || state.locked) return;
+      if (!me() || state.locked || state.autoDemoSession) return;
       clearTimeout(inactivityTimer);
       inactivityTimer = null;
       state.locked = true;
@@ -3006,6 +3059,7 @@
       closeGuide();
       clearTimeout(inactivityTimer);
       inactivityTimer = null;
+      state.autoDemoSession = false;
       state.userId = null;
       state.view = "home";
       state.viewHistory = [];
@@ -5246,7 +5300,7 @@
     });
     setInterval(updateClock, 1000);
     setInterval(updatePinSecurityCountdowns, 1000);
-    renderLogin();
+    startOneTapDemo();
   </script>
 </body>
 </html>
