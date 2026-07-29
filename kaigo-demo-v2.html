@@ -780,6 +780,25 @@
     }
     .punch-btn.out { color: var(--brand-dark); border: 1.5px solid var(--brand); background: #fff; }
     .punch-btn:disabled { color: #8b9994; border-color: #d7dfdc; background: #e7ecea; cursor: not-allowed; }
+    .punch-overtime {
+      grid-column: 1 / -1;
+      display: grid;
+      min-height: 58px;
+      grid-template-columns: auto auto 1fr;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      color: var(--muted);
+      border: 1.5px solid var(--line);
+      border-radius: 16px;
+      background: #f7faf9;
+      text-align: left;
+    }
+    .punch-overtime > span { font-size: 13px; font-weight: 800; }
+    .punch-overtime strong { color: var(--ink); font-size: 20px; font-variant-numeric: tabular-nums; }
+    .punch-overtime small { justify-self: end; color: var(--subtle); font-size: 10px; }
+    .punch-overtime.positive { color: var(--incident); border-color: #e8b58d; background: #fff3e9; }
+    .punch-overtime.positive strong { color: var(--incident); }
     .punch-help { margin: -5px 15px 15px; color: var(--muted); font-size: 10.5px; text-align: center; }
     .attendance-row { display: grid; grid-template-columns: 42px minmax(0,1fr) auto; gap: 10px; align-items: center; }
     .attendance-person-btn {
@@ -2057,6 +2076,17 @@
       .meal-scale { grid-template-columns: repeat(10,minmax(0,1fr)); }
       .vital-grid { grid-template-columns: repeat(5,1fr); }
       .health-record-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+      .punch-actions { grid-template-columns: 1fr 1fr 1fr; }
+      .punch-overtime {
+        grid-column: auto;
+        display: flex;
+        min-height: 74px;
+        flex-direction: column;
+        justify-content: center;
+        gap: 1px;
+        text-align: center;
+      }
+      .punch-overtime small { justify-self: auto; }
     }
     @media (min-width: 1040px) {
       body { padding: 24px; }
@@ -3448,6 +3478,9 @@
           <div class="punch-actions">
             <button class="punch-btn" type="button" onclick="punch('start')" ${activeMine ? "disabled" : ""}>${activeMine ? "出勤中" : mine?.start ? "再出勤を打刻" : "出勤を打刻"}</button>
             <button class="punch-btn out" type="button" onclick="punch('end')" ${!activeMine ? "disabled" : ""}>退勤を打刻</button>
+            <div class="punch-overtime ${overtimeToday ? "positive" : ""}" id="punchOvertimePanel" aria-label="本日の時間外">
+              <span>時間外</span><strong id="punchOvertimeToday">${minutesLabel(overtimeToday)}</strong><small>8時間超過分</small>
+            </div>
           </div>
           <div class="punch-help">退勤後も再出勤できます。勤務ごとに別の記録として保存されます。</div>
         </section>
@@ -3486,6 +3519,10 @@
         const minutes = dayOvertimeMinutes(current.id, active?.date || latest?.date || todayKey(), true);
         overtime.textContent = minutesLabel(minutes);
         overtime.classList.toggle("positive", minutes > 0);
+        const punchOvertime = document.getElementById("punchOvertimeToday");
+        const punchOvertimePanel = document.getElementById("punchOvertimePanel");
+        if (punchOvertime) punchOvertime.textContent = minutesLabel(minutes);
+        if (punchOvertimePanel) punchOvertimePanel.classList.toggle("positive", minutes > 0);
       }
       document.querySelectorAll("[data-attendance-overtime-user]").forEach(element => {
         const userId = element.dataset.attendanceOvertimeUser;
