@@ -1036,6 +1036,12 @@
       box-shadow: 0 0 0 4px rgba(185,65,61,.13);
       animation: voicePulse 1.35s ease-in-out infinite;
     }
+    .voice-input-button.starting {
+      color: #fff;
+      border-color: #ad6700;
+      background: #ad6700;
+      box-shadow: 0 0 0 4px rgba(173,103,0,.14);
+    }
     .voice-input-hint {
       display: flex;
       min-height: 22px;
@@ -1056,6 +1062,33 @@
     }
     .voice-input-wrap.listening .voice-input-hint { color: #963632; font-weight: 800; }
     .voice-input-wrap.listening .voice-input-hint::before { background: #b9413d; animation: voiceDot 1s ease-in-out infinite; }
+    .voice-input-wrap.starting .voice-input-hint { color: #8a5508; font-weight: 800; }
+    .voice-input-wrap.starting .voice-input-hint::before { background: #ad6700; animation: voiceDot 1s ease-in-out infinite; }
+    .voice-status-bar {
+      position: fixed;
+      right: 12px;
+      bottom: calc(76px + env(safe-area-inset-bottom));
+      left: 12px;
+      display: none;
+      max-width: 460px;
+      min-height: 56px;
+      align-items: center;
+      gap: 10px;
+      margin: 0 auto;
+      padding: 8px 9px 8px 13px;
+      color: #fff;
+      border-radius: 14px;
+      background: #ad6700;
+      box-shadow: 0 8px 24px rgba(31,45,41,.24);
+      z-index: 180;
+    }
+    .voice-status-bar.show { display: flex; }
+    .voice-status-bar.listening { background: #a83431; }
+    .voice-status-indicator { width: 10px; height: 10px; flex: 0 0 auto; border-radius: 50%; background: currentColor; animation: voiceDot 1s ease-in-out infinite; }
+    .voice-status-copy { min-width: 0; flex: 1; }
+    .voice-status-copy strong { display: block; font-size: 13px; }
+    .voice-status-copy small { display: block; margin-top: 2px; color: rgba(255,255,255,.88); font-size: 10px; line-height: 1.4; }
+    .voice-status-stop { min-width: 66px; min-height: 42px; padding: 5px 10px; color: #752421; border: 0; border-radius: 10px; background: #fff; font-size: 11px; font-weight: 900; cursor: pointer; }
     .form-label { display: block; margin: 12px 1px 6px; color: var(--muted); font-size: 11px; font-weight: 800; }
     .chips { display: flex; gap: 7px; overflow-x: auto; padding: 2px 1px 4px; scrollbar-width: none; }
     .chips::-webkit-scrollbar { display: none; }
@@ -2110,6 +2143,7 @@
       .card { padding: 17px; }
       .clock-card, .notebook-card { padding: 0; }
       .toast { bottom: 30px; }
+      .voice-status-bar { bottom: 24px; }
       .detail-modal { align-items: center; padding: 28px; }
       .detail-sheet { border-radius: 24px; padding: 12px 20px 20px; }
       .report-options { grid-template-columns: repeat(3,minmax(0,1fr)); }
@@ -2247,6 +2281,12 @@
       </header>
       <main class="app-main" id="mainContent"></main>
       <nav class="bottom-nav" id="bottomNav" aria-label="メインメニュー"></nav>
+    </div>
+
+    <div class="voice-status-bar" id="voiceStatusBar" role="status" aria-live="polite" aria-hidden="true">
+      <span class="voice-status-indicator" aria-hidden="true"></span>
+      <span class="voice-status-copy"><strong id="voiceStatusTitle">マイクを準備しています</strong><small id="voiceStatusText">開始まで少しお待ちください</small></span>
+      <button class="voice-status-stop" type="button" onclick="stopVoiceInput({ abort:true })">停止する</button>
     </div>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -2518,11 +2558,13 @@
     const escapeHTML = value => String(value ?? "").replace(/[&<>"']/g, char => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;" }[char]));
     const icon = (name, cls = "icon") => `<svg class="${cls}" aria-hidden="true"><use href="#i-${name}"></use></svg>`;
     const SpeechRecognitionApi = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+    const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
     const voiceInputRuntime = {
       recognition:null,
       targetId:"",
       selectionStart:0,
-      selectionEnd:0
+      selectionEnd:0,
+      startTimer:null
     };
     function voiceInputControl(targetId, fieldLabel) {
       if (!SpeechRecognitionApi) return "";
@@ -2530,23 +2572,42 @@
         ${icon("mic","icon")}<span class="voice-input-label">音声</span>
       </button><span class="voice-input-hint" data-voice-hint="${escapeHTML(targetId)}" aria-live="polite">マイクをタップして音声入力</span>`;
     }
-    function setVoiceInputVisualState(targetId, listening) {
+    function setVoiceInputVisualState(targetId, phase = "idle") {
+      const active = phase !== "idle";
       document.querySelectorAll("[data-voice-target]").forEach(button => {
-        const active = listening && button.dataset.voiceTarget === targetId;
-        button.classList.toggle("listening",active);
-        button.setAttribute("aria-pressed",String(active));
-        button.setAttribute("aria-label",active ? "音声入力を停止" : `${button.closest(".voice-input-wrap")?.dataset.voiceLabel || "入力欄"}を音声入力`);
+        const current = active && button.dataset.voiceTarget === targetId;
+        button.classList.toggle("starting",current && phase === "starting");
+        button.classList.toggle("listening",current && phase === "listening");
+        button.setAttribute("aria-pressed",String(current));
+        button.setAttribute("aria-label",current ? "音声入力を停止" : `${button.closest(".voice-input-wrap")?.dataset.voiceLabel || "入力欄"}を音声入力`);
         const label = button.querySelector(".voice-input-label");
-        if (label) label.textContent = active ? "停止" : "音声";
+        if (label) label.textContent = current ? "停止" : "音声";
       });
       document.querySelectorAll(".voice-input-wrap").forEach(wrapper => {
-        wrapper.classList.toggle("listening",listening && wrapper.querySelector("[data-voice-target]")?.dataset.voiceTarget === targetId);
+        const current = active && wrapper.querySelector("[data-voice-target]")?.dataset.voiceTarget === targetId;
+        wrapper.classList.toggle("starting",current && phase === "starting");
+        wrapper.classList.toggle("listening",current && phase === "listening");
       });
       document.querySelectorAll("[data-voice-hint]").forEach(hint => {
-        hint.textContent = listening && hint.dataset.voiceHint === targetId
-          ? "音声を認識しています。もう一度タップで停止"
-          : "マイクをタップして音声入力";
+        const current = active && hint.dataset.voiceHint === targetId;
+        hint.textContent = !current
+          ? "マイクをタップして音声入力"
+          : phase === "starting"
+            ? "マイクを準備しています…"
+            : "音声入力中です。もう一度タップで停止";
       });
+      const statusBar = document.getElementById("voiceStatusBar");
+      const statusTitle = document.getElementById("voiceStatusTitle");
+      const statusText = document.getElementById("voiceStatusText");
+      if (statusBar) {
+        statusBar.classList.toggle("show",active);
+        statusBar.classList.toggle("listening",phase === "listening");
+        statusBar.setAttribute("aria-hidden",String(!active));
+      }
+      if (statusTitle) statusTitle.textContent = phase === "listening" ? "音声入力中" : "マイクを準備しています";
+      if (statusText) statusText.textContent = phase === "listening"
+        ? isIOSDevice ? "話し終えると自動で停止します。他の操作をすると音声入力を終了します" : "話してください。他の操作をすると音声入力を終了します"
+        : "8秒以内に開始しない場合は自動で解除します";
     }
     function insertVoiceTranscript(targetId, transcript) {
       const target = document.getElementById(targetId);
@@ -2564,9 +2625,11 @@
     function stopVoiceInput({ abort = false } = {}) {
       const recognition = voiceInputRuntime.recognition;
       const targetId = voiceInputRuntime.targetId;
+      clearTimeout(voiceInputRuntime.startTimer);
+      voiceInputRuntime.startTimer = null;
       voiceInputRuntime.recognition = null;
       voiceInputRuntime.targetId = "";
-      setVoiceInputVisualState(targetId,false);
+      setVoiceInputVisualState(targetId,"idle");
       if (!recognition) return;
       try { abort ? recognition.abort() : recognition.stop(); } catch (error) { /* すでに停止済み */ }
     }
@@ -2585,11 +2648,14 @@
       voiceInputRuntime.selectionStart = target.selectionStart ?? target.value.length;
       voiceInputRuntime.selectionEnd = target.selectionEnd ?? voiceInputRuntime.selectionStart;
       recognition.lang = "ja-JP";
-      recognition.continuous = true;
-      recognition.interimResults = true;
+      recognition.continuous = !isIOSDevice;
+      recognition.interimResults = !isIOSDevice;
       recognition.maxAlternatives = 1;
       recognition.onstart = () => {
-        if (voiceInputRuntime.recognition === recognition) setVoiceInputVisualState(targetId,true);
+        if (voiceInputRuntime.recognition !== recognition) return;
+        clearTimeout(voiceInputRuntime.startTimer);
+        voiceInputRuntime.startTimer = null;
+        setVoiceInputVisualState(targetId,"listening");
       };
       recognition.onresult = event => {
         if (voiceInputRuntime.recognition !== recognition) return;
@@ -2597,7 +2663,10 @@
         for (let index = event.resultIndex; index < event.results.length; index += 1) {
           if (event.results[index].isFinal) finalTranscript += event.results[index][0]?.transcript || "";
         }
-        if (finalTranscript) insertVoiceTranscript(targetId,finalTranscript.trim());
+        if (finalTranscript) {
+          insertVoiceTranscript(targetId,finalTranscript.trim());
+          if (isIOSDevice) stopVoiceInput();
+        }
       };
       recognition.onerror = event => {
         if (voiceInputRuntime.recognition !== recognition || event.error === "aborted") return;
@@ -2606,20 +2675,32 @@
           : event.error === "no-speech"
             ? "音声を認識できませんでした"
             : "音声入力を開始できませんでした";
+        stopVoiceInput({ abort:true });
         showToast(message);
       };
       recognition.onend = () => {
         if (voiceInputRuntime.recognition !== recognition) return;
+        clearTimeout(voiceInputRuntime.startTimer);
+        voiceInputRuntime.startTimer = null;
         voiceInputRuntime.recognition = null;
         voiceInputRuntime.targetId = "";
-        setVoiceInputVisualState(targetId,false);
+        setVoiceInputVisualState(targetId,"idle");
       };
-      try {
-        recognition.start();
-      } catch (error) {
+      setVoiceInputVisualState(targetId,"starting");
+      voiceInputRuntime.startTimer = setTimeout(() => {
+        if (voiceInputRuntime.recognition !== recognition) return;
         stopVoiceInput({ abort:true });
-        showToast("音声入力を開始できませんでした");
-      }
+        showToast("マイクを開始できませんでした。もう一度お試しください");
+      },8000);
+      requestAnimationFrame(() => {
+        if (voiceInputRuntime.recognition !== recognition) return;
+        try {
+          recognition.start();
+        } catch (error) {
+          stopVoiceInput({ abort:true });
+          showToast("音声入力を開始できませんでした");
+        }
+      });
     }
     const currentTime = () => new Intl.DateTimeFormat("ja-JP", { hour:"2-digit", minute:"2-digit", hour12:false }).format(new Date());
     const longDate = () => new Intl.DateTimeFormat("ja-JP", { year:"numeric", month:"long", day:"numeric", weekday:"short" }).format(new Date());
@@ -5692,6 +5773,11 @@
     }
 
     window.addEventListener("hashchange", routeFromHash);
+    document.addEventListener("pointerdown", event => {
+      if (!voiceInputRuntime.recognition) return;
+      if (event.target.closest?.(".voice-input-button, #voiceStatusBar")) return;
+      stopVoiceInput({ abort:true });
+    }, { capture:true });
     document.addEventListener("keydown", event => {
       if (state.locked) {
         if (/^\d$/.test(event.key)) { event.preventDefault(); pressLockPin(event.key); }
