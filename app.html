@@ -1002,6 +1002,60 @@
       resize: vertical;
     }
     .textarea:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(23,107,93,.1); }
+    .voice-input-wrap { position: relative; min-width: 0; }
+    .voice-input-wrap textarea { padding-right: 72px; }
+    .voice-input-button {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      display: inline-flex;
+      min-width: 52px;
+      min-height: 44px;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 5px 7px;
+      color: var(--brand-dark);
+      border: 1.5px solid #a9c9c0;
+      border-radius: 10px;
+      background: #fff;
+      box-shadow: 0 2px 7px rgba(31,60,52,.08);
+      font-size: 9.5px;
+      font-weight: 800;
+      line-height: 1;
+      cursor: pointer;
+      z-index: 1;
+    }
+    .voice-input-button:hover { background: var(--brand-pale); }
+    .voice-input-button:focus-visible { box-shadow: 0 0 0 3px rgba(23,107,93,.18); }
+    .voice-input-button .icon { width: 18px; height: 18px; }
+    .voice-input-button.listening {
+      color: #fff;
+      border-color: #b9413d;
+      background: #b9413d;
+      box-shadow: 0 0 0 4px rgba(185,65,61,.13);
+      animation: voicePulse 1.35s ease-in-out infinite;
+    }
+    .voice-input-hint {
+      display: flex;
+      min-height: 22px;
+      align-items: center;
+      gap: 5px;
+      margin: 5px 3px 0;
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.4;
+    }
+    .voice-input-hint::before {
+      width: 6px;
+      height: 6px;
+      flex: 0 0 auto;
+      border-radius: 50%;
+      background: #91aaa3;
+      content: "";
+    }
+    .voice-input-wrap.listening .voice-input-hint { color: #963632; font-weight: 800; }
+    .voice-input-wrap.listening .voice-input-hint::before { background: #b9413d; animation: voiceDot 1s ease-in-out infinite; }
     .form-label { display: block; margin: 12px 1px 6px; color: var(--muted); font-size: 11px; font-weight: 800; }
     .chips { display: flex; gap: 7px; overflow-x: auto; padding: 2px 1px 4px; scrollbar-width: none; }
     .chips::-webkit-scrollbar { display: none; }
@@ -1135,8 +1189,9 @@
     .note-body { padding: 11px 15px 14px; font-size: 15px; line-height: 1.8; }
     .reply-area { margin: 0 13px 13px; padding: 11px 12px; border-left: 3px solid #809ebc; border-radius: 5px 11px 11px 5px; background: #edf3f8; font-size: 15px; }
     .reply-area strong { display: flex; align-items: center; gap: 5px; margin-bottom: 3px; color: #345879; font-size: 10.5px; }
-    .reply-form { display: flex; gap: 8px; margin: 0 13px 14px; }
-    .reply-input { min-width: 0; min-height: 47px; flex: 1; padding: 8px 12px; border: 1.5px solid var(--line-strong); border-radius: 12px; background: #fff; font-size: 15px; }
+    .reply-form { display: flex; align-items: flex-start; gap: 8px; margin: 0 13px 14px; }
+    .reply-form .voice-input-wrap { flex: 1; }
+    .reply-input { width: 100%; min-width: 0; min-height: 72px; padding: 10px 72px 10px 12px; border: 1.5px solid var(--line-strong); border-radius: 12px; background: #fff; font-size: 15px; line-height: 1.55; resize: vertical; }
     .reply-submit { min-width: 72px; min-height: 47px; color: #fff; border: 0; border-radius: 12px; background: var(--brand); font-size: 12px; font-weight: 800; cursor: pointer; }
     .note-health-summary {
       display: flex;
@@ -1949,6 +2004,14 @@
       from { opacity: 0; transform: translateY(24px); }
       to { opacity: 1; transform: translateY(0); }
     }
+    @keyframes voicePulse {
+      0%, 100% { box-shadow: 0 0 0 3px rgba(185,65,61,.12); }
+      50% { box-shadow: 0 0 0 7px rgba(185,65,61,.2); }
+    }
+    @keyframes voiceDot {
+      0%, 100% { opacity: .45; transform: scale(.8); }
+      50% { opacity: 1; transform: scale(1.15); }
+    }
     @media (max-width: 719px) {
       .account-row { grid-template-columns: 42px minmax(0,1fr); }
       .account-actions { grid-column: 1 / -1; align-items: stretch; }
@@ -2158,6 +2221,7 @@
         <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></symbol>
         <symbol id="i-qr" viewBox="0 0 24 24"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3z"/><path d="M15 14h2v2h-2zM19 14h2v4h-2zM14 19h4v2h-4zM20 20h1v1h-1z"/></symbol>
         <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4l11-11-4-4L4 16Z"/><path d="m13.5 6.5 4 4"/></symbol>
+        <symbol id="i-mic" viewBox="0 0 24 24"><rect x="8" y="3" width="8" height="12" rx="4"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M8.5 21h7"/></symbol>
       </defs>
     </svg>
 
@@ -2453,6 +2517,110 @@
     const initial = name => name.replace(/\s/g,"").slice(0,2);
     const escapeHTML = value => String(value ?? "").replace(/[&<>"']/g, char => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;" }[char]));
     const icon = (name, cls = "icon") => `<svg class="${cls}" aria-hidden="true"><use href="#i-${name}"></use></svg>`;
+    const SpeechRecognitionApi = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+    const voiceInputRuntime = {
+      recognition:null,
+      targetId:"",
+      selectionStart:0,
+      selectionEnd:0
+    };
+    function voiceInputControl(targetId, fieldLabel) {
+      if (!SpeechRecognitionApi) return "";
+      return `<button class="voice-input-button" type="button" data-voice-target="${escapeHTML(targetId)}" onclick="toggleVoiceInput('${targetId}')" aria-label="${escapeHTML(fieldLabel)}を音声入力" aria-pressed="false">
+        ${icon("mic","icon")}<span class="voice-input-label">音声</span>
+      </button><span class="voice-input-hint" data-voice-hint="${escapeHTML(targetId)}" aria-live="polite">マイクをタップして音声入力</span>`;
+    }
+    function setVoiceInputVisualState(targetId, listening) {
+      document.querySelectorAll("[data-voice-target]").forEach(button => {
+        const active = listening && button.dataset.voiceTarget === targetId;
+        button.classList.toggle("listening",active);
+        button.setAttribute("aria-pressed",String(active));
+        button.setAttribute("aria-label",active ? "音声入力を停止" : `${button.closest(".voice-input-wrap")?.dataset.voiceLabel || "入力欄"}を音声入力`);
+        const label = button.querySelector(".voice-input-label");
+        if (label) label.textContent = active ? "停止" : "音声";
+      });
+      document.querySelectorAll(".voice-input-wrap").forEach(wrapper => {
+        wrapper.classList.toggle("listening",listening && wrapper.querySelector("[data-voice-target]")?.dataset.voiceTarget === targetId);
+      });
+      document.querySelectorAll("[data-voice-hint]").forEach(hint => {
+        hint.textContent = listening && hint.dataset.voiceHint === targetId
+          ? "音声を認識しています。もう一度タップで停止"
+          : "マイクをタップして音声入力";
+      });
+    }
+    function insertVoiceTranscript(targetId, transcript) {
+      const target = document.getElementById(targetId);
+      if (!(target instanceof HTMLTextAreaElement) && !(target instanceof HTMLInputElement)) return;
+      const start = Math.min(voiceInputRuntime.selectionStart, target.value.length);
+      const end = Math.min(Math.max(start,voiceInputRuntime.selectionEnd),target.value.length);
+      const available = target.maxLength > -1 ? Math.max(0,target.maxLength - (target.value.length - (end - start))) : transcript.length;
+      const insertion = transcript.slice(0,available);
+      if (!insertion) return;
+      target.setRangeText(insertion,start,end,"end");
+      voiceInputRuntime.selectionStart = target.selectionStart ?? (start + insertion.length);
+      voiceInputRuntime.selectionEnd = target.selectionEnd ?? voiceInputRuntime.selectionStart;
+      target.dispatchEvent(new Event("input",{ bubbles:true }));
+    }
+    function stopVoiceInput({ abort = false } = {}) {
+      const recognition = voiceInputRuntime.recognition;
+      const targetId = voiceInputRuntime.targetId;
+      voiceInputRuntime.recognition = null;
+      voiceInputRuntime.targetId = "";
+      setVoiceInputVisualState(targetId,false);
+      if (!recognition) return;
+      try { abort ? recognition.abort() : recognition.stop(); } catch (error) { /* すでに停止済み */ }
+    }
+    function toggleVoiceInput(targetId) {
+      if (!SpeechRecognitionApi) return;
+      if (voiceInputRuntime.recognition && voiceInputRuntime.targetId === targetId) {
+        stopVoiceInput();
+        return;
+      }
+      if (voiceInputRuntime.recognition) stopVoiceInput({ abort:true });
+      const target = document.getElementById(targetId);
+      if (!(target instanceof HTMLTextAreaElement) && !(target instanceof HTMLInputElement)) return;
+      const recognition = new SpeechRecognitionApi();
+      voiceInputRuntime.recognition = recognition;
+      voiceInputRuntime.targetId = targetId;
+      voiceInputRuntime.selectionStart = target.selectionStart ?? target.value.length;
+      voiceInputRuntime.selectionEnd = target.selectionEnd ?? voiceInputRuntime.selectionStart;
+      recognition.lang = "ja-JP";
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.maxAlternatives = 1;
+      recognition.onstart = () => {
+        if (voiceInputRuntime.recognition === recognition) setVoiceInputVisualState(targetId,true);
+      };
+      recognition.onresult = event => {
+        if (voiceInputRuntime.recognition !== recognition) return;
+        let finalTranscript = "";
+        for (let index = event.resultIndex; index < event.results.length; index += 1) {
+          if (event.results[index].isFinal) finalTranscript += event.results[index][0]?.transcript || "";
+        }
+        if (finalTranscript) insertVoiceTranscript(targetId,finalTranscript.trim());
+      };
+      recognition.onerror = event => {
+        if (voiceInputRuntime.recognition !== recognition || event.error === "aborted") return;
+        const message = event.error === "not-allowed" || event.error === "service-not-allowed"
+          ? "マイクの使用を許可してください"
+          : event.error === "no-speech"
+            ? "音声を認識できませんでした"
+            : "音声入力を開始できませんでした";
+        showToast(message);
+      };
+      recognition.onend = () => {
+        if (voiceInputRuntime.recognition !== recognition) return;
+        voiceInputRuntime.recognition = null;
+        voiceInputRuntime.targetId = "";
+        setVoiceInputVisualState(targetId,false);
+      };
+      try {
+        recognition.start();
+      } catch (error) {
+        stopVoiceInput({ abort:true });
+        showToast("音声入力を開始できませんでした");
+      }
+    }
     const currentTime = () => new Intl.DateTimeFormat("ja-JP", { hour:"2-digit", minute:"2-digit", hour12:false }).format(new Date());
     const longDate = () => new Intl.DateTimeFormat("ja-JP", { year:"numeric", month:"long", day:"numeric", weekday:"short" }).format(new Date());
     const greeting = () => {
@@ -3038,6 +3206,7 @@
     }
     function lockSession() {
       if (!me() || state.locked || state.autoDemoSession) return;
+      stopVoiceInput({ abort:true });
       clearTimeout(inactivityTimer);
       inactivityTimer = null;
       state.locked = true;
@@ -3139,6 +3308,7 @@
       }
     }
     function logout() {
+      stopVoiceInput({ abort:true });
       closeAttendanceDetail();
       closeMoreMenu();
       closeAccountModal();
@@ -3260,6 +3430,7 @@
     }
     function renderApp({ preserveScroll = false, restoreScroll = null, scrollTargetId = "", scrollBehavior = "smooth", scrollBlock = "nearest" } = {}) {
       const scrollSnapshot = restoreScroll || (preserveScroll ? captureScrollSnapshot() : null);
+      stopVoiceInput({ abort:true });
       const u = me();
       if (!u) { renderLogin(); return; }
       document.getElementById("loginRoot").classList.add("hidden");
@@ -3987,7 +4158,10 @@
             <button class="segment incident ${state.postType === "incident" ? "active" : ""}" type="button" onclick="setPostType('incident')">${icon("alert","icon icon-sm")}ヒヤリハット</button>
           </div>
           <label class="sr-only" for="postText">申し送り本文</label>
-          <textarea class="textarea" id="postText" placeholder="共有したい内容を入力してください" oninput="state.postDraft=this.value">${escapeHTML(state.postDraft)}</textarea>
+          <div class="voice-input-wrap" data-voice-label="申し送り本文">
+            <textarea class="textarea" id="postText" placeholder="共有したい内容を入力してください" oninput="state.postDraft=this.value">${escapeHTML(state.postDraft)}</textarea>
+            ${voiceInputControl("postText","申し送り本文")}
+          </div>
           <span class="form-label">勤務帯</span>
           <div class="chips" data-preserve-scroll="post-shifts">${["早番","日勤","遅番","夜勤"].map(s => `<button class="chip ${state.postShift === s ? "active" : ""}" type="button" onclick="setPostShift('${s}')">${s}</button>`).join("")}</div>
           <span class="form-label">対象の利用者</span>
@@ -4220,7 +4394,7 @@
             <div class="health-drink-rows" id="healthDrinkRows">${drinks.map(healthDrinkRowMarkup).join("")}</div>
             <button class="health-drink-add" type="button" onclick="addHealthDrinkRow()">${icon("plus","icon icon-sm")}飲み物を追加</button>
           </div>
-          <div class="health-field full"><label for="healthMemo">メモ</label><textarea class="health-textarea" id="healthMemo" maxlength="500" placeholder="体調や対応内容を入力してください">${escapeHTML(value("memo",""))}</textarea></div>
+          <div class="health-field full"><label for="healthMemo">メモ</label><div class="voice-input-wrap" data-voice-label="体調管理のメモ"><textarea class="health-textarea" id="healthMemo" maxlength="500" placeholder="体調や対応内容を入力してください">${escapeHTML(value("memo",""))}</textarea>${voiceInputControl("healthMemo","体調管理のメモ")}</div></div>
         </div>
         <div class="health-form-actions">
           <button class="health-cancel" type="button" onclick="cancelHealthEdit()">キャンセル</button>
@@ -4486,7 +4660,7 @@
         ${health ? `<div class="note-health-summary ${temperatureWarning(health) || spo2Warning(health) ? "warning" : ""}">${icon("health","icon icon-sm")}<span>${escapeHTML(healthSummaryLabel(health))}</span></div>` : ""}
         <div class="note-body">${escapeHTML(note.text)}</div>
         ${note.replies.map(reply => `<div class="reply-area"><strong>${icon("message","icon icon-sm")}ご家族から｜${escapeHTML(reply.author)}</strong>${escapeHTML(reply.text)}</div>`).join("")}
-        ${u.role === "family" ? `<div class="reply-form"><label class="sr-only" for="reply-${note.id}">職員への返信</label><input class="reply-input" id="reply-${note.id}" placeholder="職員へのメッセージ"><button class="reply-submit" type="button" onclick="addReply('${note.id}')">返信する</button></div>` : ""}
+        ${u.role === "family" ? `<div class="reply-form"><label class="sr-only" for="reply-${note.id}">職員への返信</label><div class="voice-input-wrap" data-voice-label="連絡帳本文"><textarea class="reply-input" id="reply-${note.id}" maxlength="500" rows="2" placeholder="職員へのメッセージ"></textarea>${voiceInputControl(`reply-${note.id}`,"連絡帳本文")}</div><button class="reply-submit" type="button" onclick="addReply('${note.id}')">返信する</button></div>` : ""}
       </article>`;
     }
     function addReply(noteId) {
